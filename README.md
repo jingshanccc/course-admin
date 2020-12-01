@@ -1,5 +1,5 @@
 # course-web
-
+![](https://img.shields.io/github/license/jingshanccc/course-web)![](https://img.shields.io/github/stars/jingshanccc/course-web)![](https://img.shields.io/github/forks/jingshanccc/course-web)![commit](https://img.shields.io/github/last-commit/jingshanccc/course-web)
 ## Project setup
 ```
 npm install
