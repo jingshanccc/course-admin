@@ -1,8 +1,6 @@
-import {getToken} from "@/utils/auth";
-import {login} from "@/api/login";
-import {removeToken, setToken} from "@/utils/auth";
-import {logout} from "@/api/login";
-import { Notification } from "element-ui";
+import {getToken, removeToken, setToken} from "@/utils/auth";
+import {login, logout} from "@/api/login";
+import {Notification} from "element-ui";
 
 const user = {
     state: {
@@ -18,14 +16,14 @@ const user = {
         },
     },
     actions: {
-        Login({ commit }, loginUser) {
+        Login({commit}, loginUser) {
             return new Promise((resolve, reject) => {
                 login(loginUser).then(res => {
-                    if (res.success){
+                    if (res.success) {
                         setToken(res.content.token)
                         commit('SET_TOKEN', res.content.token)
                         resolve()
-                    }else {
+                    } else {
                         Notification.error({
                             title: '登陆失败',
                             message: res.message,
@@ -39,10 +37,10 @@ const user = {
             })
         },
 
-        Logout({ commit }) {
+        Logout({commit}) {
             return new Promise((resolve, reject) => {
                 logout(getToken()).then(res => {
-                    console.log('退出成功：'+res)
+                    console.log('退出成功：' + res)
                     DoLogout(commit)
                     resolve()
                 }).catch(err => {

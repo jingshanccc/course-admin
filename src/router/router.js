@@ -7,13 +7,13 @@ export const routerMap = [
     {
         path: '/login',
         meta: { title: '登录', noCache: true},
-        component: (resolve) => require(['@/views/login.vue'], resolve),
+        component: (resolve) => require(['@/views/login'], resolve),
         hidden: true //用来控制是否显示在sidebar
     },
     {
         path: '/',
         meta: { title: '主页', noCache: true},
-        component: (resolve) => require(['@/views/index.vue'], resolve),
+        component: (resolve) => require(['@/views/home'], resolve),
         hidden: true //用来控制是否显示在sidebar
     }
 ]
