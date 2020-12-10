@@ -69,22 +69,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  @import "~@/assets/styles/mixin.scss";
-  @import "~@/assets/styles/variables.scss";
-
-  .app-wrapper {
+@import "~@/assets/styles/mixin.scss";
+@import "~@/assets/styles/variables.scss";
+.app-wrapper {
     @include clearfix;
     position: relative;
     height: 100%;
     width: 100%;
+    &.mobile.openSidebar {
+        position: fixed;
+        top: 0;
+    }
+}
 
-  &.mobile.openSidebar {
-     position: fixed;
-     top: 0;
-   }
-  }
-
-  .drawer-bg {
+.drawer-bg {
     background: #000;
     opacity: 0.3;
     width: 100%;
@@ -92,9 +90,9 @@ export default {
     height: 100%;
     position: absolute;
     z-index: 999;
-  }
+}
 
-  .fixed-header {
+.fixed-header {
     position: fixed;
     top: 0;
     right: 0;
@@ -102,13 +100,13 @@ export default {
     width: calc(100% - #{$sideBarWidth});
     transition: width 0.28s;
     padding: 0;
-  }
+}
 
-  .hideSidebar .fixed-header {
+.hideSidebar .fixed-header {
     width: calc(100% - 54px)
-  }
+}
 
-  .mobile .fixed-header {
+.mobile .fixed-header {
     width: 100%;
-  }
+}
 </style>

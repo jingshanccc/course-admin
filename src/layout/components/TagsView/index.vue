@@ -1,164 +1,164 @@
 <template>
-    <div id="tags-view-container" class="tags-view-container">
-        <scroll-pane ref="scrollPane" class="tags-view-wrapper">
-            <router-link v-for="tag in visitedViews" ref="tag" :key="tag.path" :class="isActive(tag)?'active':''" :to="{path: tag.path, query: tag.query, fullPath: tag.fullPath}" tag="span" class="tags-view-item" @click.middle.native="closeSelectedTag(tag)" @contextmenu.prevent.native="openMenu(tag, $event)">
-                {{tag.title}}
-                <!-- 如果不是首页 则显示关闭按钮 -->
-                <span v-if="tag.name && !tag.name === 'Dashboard'" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
-            </router-link>
-        </scroll-pane>
-        <ul v-show="visible" :style="{left: left+'px', top: top+'px'}" class="contextmenu">
-            <li @click="refreshSelectedTag(selectedTag)">刷新</li>
-            <li v-if="!(selectedTag.name && selectedTag.name === 'Dashboard')" @click="closeSelectedTag(selectedTag)">关闭</li>
-            <li @click="closeOtherTags">关闭其他</li>
-            <li @click="closeAllTags(selectedTag)">关闭全部</li>
-        </ul>
-    </div>
+  <div id="tags-view-container" class="tags-view-container">
+    <scroll-pane ref="scrollPane" class="tags-view-wrapper">
+      <router-link v-for="tag in visitedViews" ref="tag" :key="tag.path" :class="isActive(tag)?'active':''" :to="{path: tag.path, query: tag.query, fullPath: tag.fullPath}" tag="span" class="tags-view-item" @click.middle.native="closeSelectedTag(tag)" @contextmenu.prevent.native="openMenu(tag, $event)">
+        {{ tag.title }}
+        <!-- 如果不是首页 则显示关闭按钮 -->
+        <span v-if="tag.name && !tag.name === 'Dashboard'" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
+      </router-link>
+    </scroll-pane>
+    <ul v-show="visible" :style="{left: left+'px', top: top+'px'}" class="contextmenu">
+      <li @click="refreshSelectedTag(selectedTag)">刷新</li>
+      <li v-if="!(selectedTag.name && selectedTag.name === 'Dashboard')" @click="closeSelectedTag(selectedTag)">关闭</li>
+      <li @click="closeOtherTags">关闭其他</li>
+      <li @click="closeAllTags(selectedTag)">关闭全部</li>
+    </ul>
+  </div>
 </template>
 
 <script>
 import ScrollPane from './ScrollPane'
 import path from 'path'
 export default {
-    components: {
-        ScrollPane
-    },
-    data() {
-        return {
-            visible: false,
-            top: 0,
-            left: 0,
-            selectedTag: {},
-            dashboardTag: {}
-        }
-    },
-    computed: {
-        visitedViews() {
-            return this.$store.state.tagsView.visitedViews
-        },
-        routes() {
-            return this.$store.state.permission.routers
-        }
-    },
-    watch: {
-        $route() {
-            this.addTags()
-            this.moveToCurrentTag()
-        },
-        visible(value) {
-            if (value) {
-                document.body.addEventListener('click', this.closeMenu)
-            } else {
-                document.body.removeEventListener('click', this.closeMenu)
-            }
-        }
-    },
-    mounted() {
-        this.initTags()
-        this.addTags()
-    },
-    methods: {
-        addTags() {
-            const { name } = this.$route
-            if (name) {
-                this.$store.dispatch('tagsView/addView', this.$route)
-            }
-            return false
-        },
-        moveToCurrentTag() {
-            const tags = this.$refs.tag
-            this.$nextTick(() => {
-                for (const tag of tags) {
-                    if (tag.to.path === this.$route.path) {
-                        this.$refs.scrollPane.moveToCurrentTag(tag)
-                        if (tag.to.fullPath !== this.$route.fullPath) {
-                            this.$store.dispatch('/tagsView/updateVisitedView', this.$route)
-                        }
-                        break
-                    }
-                }
-            })
-        },
-        closeMenu() {
-            this.visible = false
-        },
-        initTags() {
-            this.routes.forEach(v => {
-                if (v.name && v.name === 'Dashboard') {
-                    const tagPath = path.resolve('/', v.path)
-                    this.dashboardTag = {
-                        fullPath: tagPath,
-                        path: tagPath,
-                        name: v.name,
-                        meta: { ...v.meta }
-                    }
-                    this.$store.dispatch('tagsView/addVisitedView', this.dashboardTag)
-                }
-            });
-        },
-        isActive(route) {
-            return route.path === this.$route.path
-        },
-        closeSelectedTag(view) {
-            this.$store.dispatch('tagsView/delView', view).then(({ visitedViews }) => {
-                if (this.isActive(view)) {
-                    this.toLastView(visitedViews, view)
-                }
-            })
-        },
-        toLastView(visitedViews, view) {
-            const lastView = visitedViews.slice(-1)[0]
-            if (lastView) {
-                this.$router.push(lastView)
-            } else {
-                if (view.name === 'Dashboard') {
-                    this.$router.replace({ path: '/redirect' + view.fullPath })
-                } else {
-                    this.$router.push('/')
-                }
-            }
-        },
-        openMenu(tag, e) {
-            const menuMinWidth = 105
-            //元素框 margin-left
-            const offsetLeft = this.$el.getBoundingClientRect().left
-            //元素框 width
-            const offsetWidth = this.$el.offsetWidth
-
-            const maxLeft = offsetWidth - menuMinWidth
-            //15 margin-right
-            const left = e.clientX - offsetLeft + 15
-
-            this.left = left > maxLeft ? maxLeft : left
-            this.top = e.clientY
-            this.visible = true
-            this.selectedTag = tag
-        },
-        refreshSelectedTag(view) {
-            this.$store.dispatch('tagsView/delCachedView', view).then(() => {
-                const { fullPath } = view
-                this.$nextTick(() => {
-                    this.$router.replace({
-                        path: '/redirect' + fullPath
-                    })
-                })
-            })
-        },
-        closeOthersTags() {
-            this.$router.push(this.selectedTag)
-            this.$store.dispatch('tagsView/delOtherViews', this.selectedTag).then(() => {
-                this.moveToCurrentTag()
-            })
-        },
-        closeAllTags(view) {
-            this.$store.dispatch('tagsView/delAllViews').then(({ visitedViews }) => {
-                if (this.dashboardTag.path === view.path) {
-                    return
-                }
-                this.toLastView(visitedViews, view)
-            })
-        }
+  components: {
+    ScrollPane
+  },
+  data() {
+    return {
+      visible: false,
+      top: 0,
+      left: 0,
+      selectedTag: {},
+      dashboardTag: {}
     }
+  },
+  computed: {
+    visitedViews() {
+      return this.$store.state.tagsView.visitedViews
+    },
+    routes() {
+      return this.$store.state.permission.routers
+    }
+  },
+  watch: {
+    $route() {
+      this.addTags()
+      this.moveToCurrentTag()
+    },
+    visible(value) {
+      if (value) {
+        document.body.addEventListener('click', this.closeMenu)
+      } else {
+        document.body.removeEventListener('click', this.closeMenu)
+      }
+    }
+  },
+  mounted() {
+    this.initTags()
+    this.addTags()
+  },
+  methods: {
+    addTags() {
+      const { name } = this.$route
+      if (name) {
+        this.$store.dispatch('tagsView/addView', this.$route)
+      }
+      return false
+    },
+    moveToCurrentTag() {
+      const tags = this.$refs.tag
+      this.$nextTick(() => {
+        for (const tag of tags) {
+          if (tag.to.path === this.$route.path) {
+            this.$refs.scrollPane.moveToCurrentTag(tag)
+            if (tag.to.fullPath !== this.$route.fullPath) {
+              this.$store.dispatch('/tagsView/updateVisitedView', this.$route)
+            }
+            break
+          }
+        }
+      })
+    },
+    closeMenu() {
+      this.visible = false
+    },
+    initTags() {
+      this.routes.forEach(v => {
+        if (v.name && v.name === 'Dashboard') {
+          const tagPath = path.resolve('/', v.path)
+          this.dashboardTag = {
+            fullPath: tagPath,
+            path: tagPath,
+            name: v.name,
+            meta: { ...v.meta }
+          }
+          this.$store.dispatch('tagsView/addVisitedView', this.dashboardTag)
+        }
+      })
+    },
+    isActive(route) {
+      return route.path === this.$route.path
+    },
+    closeSelectedTag(view) {
+      this.$store.dispatch('tagsView/delView', view).then(({ visitedViews }) => {
+        if (this.isActive(view)) {
+          this.toLastView(visitedViews, view)
+        }
+      })
+    },
+    toLastView(visitedViews, view) {
+      const lastView = visitedViews.slice(-1)[0]
+      if (lastView) {
+        this.$router.push(lastView)
+      } else {
+        if (view.name === 'Dashboard') {
+          this.$router.replace({ path: '/redirect' + view.fullPath })
+        } else {
+          this.$router.push('/')
+        }
+      }
+    },
+    openMenu(tag, e) {
+      const menuMinWidth = 105
+      // 元素框 margin-left
+      const offsetLeft = this.$el.getBoundingClientRect().left
+      // 元素框 width
+      const offsetWidth = this.$el.offsetWidth
+
+      const maxLeft = offsetWidth - menuMinWidth
+      // 15 margin-right
+      const left = e.clientX - offsetLeft + 15
+
+      this.left = left > maxLeft ? maxLeft : left
+      this.top = e.clientY
+      this.visible = true
+      this.selectedTag = tag
+    },
+    refreshSelectedTag(view) {
+      this.$store.dispatch('tagsView/delCachedView', view).then(() => {
+        const { fullPath } = view
+        this.$nextTick(() => {
+          this.$router.replace({
+            path: '/redirect' + fullPath
+          })
+        })
+      })
+    },
+    closeOthersTags() {
+      this.$router.push(this.selectedTag)
+      this.$store.dispatch('tagsView/delOtherViews', this.selectedTag).then(() => {
+        this.moveToCurrentTag()
+      })
+    },
+    closeAllTags(view) {
+      this.$store.dispatch('tagsView/delAllViews').then(({ visitedViews }) => {
+        if (this.dashboardTag.path === view.path) {
+          return
+        }
+        this.toLastView(visitedViews, view)
+      })
+    }
+  }
 }
 </script>
 

@@ -1,8 +1,5 @@
 <template>
-  <el-color-picker v-model="theme"
-                   :predefine="['#409EFF', '#1890FF', '#304156','#212121','#11A983', '#13C2C2', '#6959CD', '#F5222D']"
-                   class="theme-picker"
-                   popper-class="theme-picker-dropdown" />
+  <el-color-picker v-model="theme" :predefine="['#409EFF', '#1890FF', '#304156','#212121','#11A983', '#13C2C2', '#6959CD', '#F5222D']" class="theme-picker" popper-class="theme-picker-dropdown" />
 </template>
 
 <script>
@@ -25,7 +22,7 @@ export default {
   },
   watch: {
     defaultTheme: {
-      handler: function (val, old) {
+      handler: function(val, old) {
         this.theme = val
       },
       immediate: true
@@ -36,8 +33,8 @@ export default {
       if (typeof val !== 'string') {
         return
       }
-      const themeCluster = this.getThemeCluster(val.replace('#',''))
-      const originCluster = this.getThemeCluster(oldVal.replace('#',''))
+      const themeCluster = this.getThemeCluster(val.replace('#', ''))
+      const originCluster = this.getThemeCluster(oldVal.replace('#', ''))
 
       const getHandler = (variable, id) => {
         return () => {
@@ -63,10 +60,10 @@ export default {
       chalkHandler()
 
       const styles = [].slice.call(document.querySelectorAll('style'))
-      .filter(style => {
-        const text = style.innerText
-        return new RegExp(oldVal, 'i').test(text) && !/Chalk Variables/.test(text)
-      })
+        .filter(style => {
+          const text = style.innerText
+          return new RegExp(oldVal, 'i').test(text) && !/Chalk Variables/.test(text)
+        })
       styles.forEach(style => {
         const { innerText } = style
         if (typeof innerText === 'string') {
@@ -87,9 +84,9 @@ export default {
         if (tint === 0) {
           return [red, green, blue].join(',')
         } else {
-          red += Math.round(tint * (255-red))
-          green += Math.round(tint * (255-green))
-          blue += Math.round(tint * (255-blue))
+          red += Math.round(tint * (255 - red))
+          green += Math.round(tint * (255 - green))
+          blue += Math.round(tint * (255 - blue))
 
           red = red.toString(16)
           green = green.toString(16)
@@ -104,9 +101,9 @@ export default {
         let green = parseInt(color.slice(2, 4), 16)
         let blue = parseInt(color.slice(4, 6), 16)
 
-        red = Math.round((1-shade) * red)
-        green = Math.round((1-shade) * green)
-        blue = Math.round((1-shade) * blue)
+        red = Math.round((1 - shade) * red)
+        green = Math.round((1 - shade) * green)
+        blue = Math.round((1 - shade) * blue)
 
         red = red.toString(16)
         green = green.toString(16)
@@ -124,10 +121,9 @@ export default {
       return clusters
     },
 
-
     /**
-     * 更新全局样式风格
-     */
+         * 更新全局样式风格
+         */
     updateStyle(style, oldCluster, newCluster) {
       let newStyle = style
       oldCluster.forEach((color, index) => {
@@ -136,11 +132,11 @@ export default {
       return newStyle
     },
     /**
-     * 获取远端的css文件 转化为字符串
-     * @param url
-     * @param variable
-     * @returns {Promise<unknown>}
-     */
+         * 获取远端的css文件 转化为字符串
+         * @param url
+         * @param variable
+         * @returns {Promise<unknown>}
+         */
     getCssString(url, variable) {
       return new Promise(resolve => {
         const xhr = new XMLHttpRequest()
@@ -159,16 +155,18 @@ export default {
 </script>
 
 <style>
-  .theme-message,
-  .theme-picker-dropdown {
+.theme-message,
+.theme-picker-dropdown {
     z-index: 99999 !important;
-  }
-  .theme-picker .el-color-picker__trigger {
+}
+
+.theme-picker .el-color-picker__trigger {
     height: 26px !important;
     width: 26px !important;
     padding: 2px;
-  }
-  .theme-picker-dropdown .el-color-dropdown__link-btn {
+}
+
+.theme-picker-dropdown .el-color-dropdown__link-btn {
     display: none;
-  }
+}
 </style>

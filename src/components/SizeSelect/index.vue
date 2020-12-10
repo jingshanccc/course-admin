@@ -17,10 +17,10 @@ export default {
   data() {
     return {
       sizeOptions: [
-        { label: '默认', value: 'default'},
-        { label: '中等', value: 'medium'},
-        { label: '正常', value: 'small'},
-        { label: '迷你', value: 'mini'},
+        { label: '默认', value: 'default' },
+        { label: '中等', value: 'medium' },
+        { label: '正常', value: 'small' },
+        { label: '迷你', value: 'mini' }
       ]
     }
   },
@@ -32,21 +32,21 @@ export default {
   methods: {
     handleSetSize(size) {
       this.$ELEMENT.size = size
-      this.$store.dispatch('app/setSize',size)
+      this.$store.dispatch('app/setSize', size)
       this.refreshView()
       this.$message({
         message: '设置成功',
         type: 'success'
       })
     },
-    //刷新当前页
+    // 刷新当前页
     refreshView() {
-      //清除缓存的视图，按新的大小重新渲染
+      // 清除缓存的视图，按新的大小重新渲染
       this.$store.dispatch('tagsView/delAllCachedViews', this.$route)
-      const {fullPath} = this.$route
+      const { fullPath } = this.$route
       this.$nextTick(() => {
         this.$router.replace({
-          path: '/redirect'+fullPath
+          path: '/redirect' + fullPath
         })
       })
     }

@@ -3,7 +3,7 @@ import App from './App.vue'
 
 import Cookies from 'js-cookie'
 import Element from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css';
+import 'element-ui/lib/theme-chalk/index.css'
 
 import store from './store'
 import router from './router/router'
@@ -14,8 +14,7 @@ import './assets/icons'
 // global css
 import './assets/styles/index.scss'
 
-
-//element组件全局size
+// element组件全局size
 Vue.use(Element, {
   size: Cookies.get('size') || 'small'
 })
@@ -24,5 +23,5 @@ Vue.config.productionTip = false
 new Vue({
   store,
   router,
-  render: h => h(App),
+  render: h => h(App)
 }).$mount('#app')

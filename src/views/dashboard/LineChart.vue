@@ -93,7 +93,8 @@ export default {
           data: ['expected', 'actual']
         },
         series: [{
-          name: 'expected', itemStyle: {
+          name: 'expected',
+          itemStyle: {
             normal: {
               color: '#FF005A',
               lineStyle: {
@@ -127,7 +128,8 @@ export default {
           data: actualData,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
-        }]
+        }
+        ]
       })
     }
   }

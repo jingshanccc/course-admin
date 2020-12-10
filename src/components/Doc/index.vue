@@ -9,7 +9,7 @@ export default {
   name: 'Doc',
   methods: {
     click() {
-      window.open('https://course-realmicah.doc.coding.io','_blank')
+      window.open('https://course-realmicah.doc.coding.io', '_blank')
     }
   }
 }
