@@ -1,13 +1,17 @@
 <template>
   <div :class="{'show': show}" class="header-search">
     <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" />
-    <el-select ref="headerSearchSelect"
-               v-model="search"
-               :remote-method="querySearch"
-               filterable default-first-option remote
-               placeholder="Search"
-               class="header-search-select"
-               @change="change">
+    <el-select
+      ref="headerSearchSelect"
+      v-model="search"
+      :remote-method="querySearch"
+      filterable
+      default-first-option
+      remote
+      placeholder="Search"
+      class="header-search-select"
+      @change="change"
+    >
       <el-option v-for="item in options" :key="item.path" :value="item" :label="item.title.join(' / ')" />
     </el-select>
   </div>
@@ -49,41 +53,41 @@ export default {
     }
   },
   methods: {
-    //从所有路由中过滤出能够被展示在侧边栏的菜单
-    generateRoutes(routes, basePath='/', prefixTitle=[]) {
+    // 从所有路由中过滤出能够被展示在侧边栏的菜单
+    generateRoutes(routes, basePath = '/', prefixTitle = []) {
       let res = []
       for (const route of routes) {
         const data = {
           path: path.resolve(basePath, route.path),
           title: [...prefixTitle]
         }
-        //拥有标题并且不是重定向路由
+        // 拥有标题并且不是重定向路由
         if (route.meta && route.meta.title) {
           data.title = [...data.title, route.meta.title]
           if (route.redirect !== 'noRedirect') {
             res.push(data)
           }
         }
-        //递归添加子路由
+        // 递归添加子路由
         if (route.children) {
           const childRoutes = this.generateRoutes(route.children, data.path, data.title)
-          if (childRoutes.length > 0){
+          if (childRoutes.length > 0) {
             res = [...res, ...childRoutes]
           }
         }
       }
-      return res;
+      return res
     },
 
-    //初始化模糊搜索工具
+    // 初始化模糊搜索工具
     initFuse(list) {
       this.fuse = new Fuse(list, {
-        shouldSort: true, //是否将搜索结果排序
-        threshold: 0.4, //模糊搜索匹配阈值， 0.0为精确匹配，1.0将匹配所有
-        location: 0, //确定输入的关键词在文本的大概位置
-        distance: 100, //设定和location的距离，和threshold相乘获得搜索的长度范围
-        minMatchCharLength: 1, //最小应匹配多少个字符
-        keys: [{ //将搜索的关键词列表
+        shouldSort: true, // 是否将搜索结果排序
+        threshold: 0.4, // 模糊搜索匹配阈值， 0.0为精确匹配，1.0将匹配所有
+        location: 0, // 确定输入的关键词在文本的大概位置
+        distance: 100, // 设定和location的距离，和threshold相乘获得搜索的长度范围
+        minMatchCharLength: 1, // 最小应匹配多少个字符
+        keys: [{ // 将搜索的关键词列表
           name: 'title',
           weight: 0.7
         }, {
@@ -92,14 +96,14 @@ export default {
         }]
       })
     },
-    //点击搜索栏
+    // 点击搜索栏
     click() {
       this.show = !this.show
       if (this.show) {
         this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.focus()
       }
     },
-    //搜索栏收起
+    // 搜索栏收起
     close() {
       this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.blur()
       this.options = []
@@ -123,7 +127,7 @@ export default {
      * @param query 输入的关键词
      */
     querySearch(query) {
-      if (query !== '' ){
+      if (query !== '') {
         this.options = this.fuse.search(query)
       } else {
         this.options = []
@@ -160,11 +164,12 @@ export default {
       border-bottom: 1px solid #d9d9d9;
       vertical-align: middle;
     }
-  }
-  &.show {
-    .header-search-select {
-      width: 210px;
-      margin-left: 10px;
+    &.show {
+      .header-search-select {
+        width: 210px;
+        margin-left: 10px;
+      }
     }
   }
+
 </style>

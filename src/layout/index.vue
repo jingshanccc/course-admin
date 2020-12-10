@@ -2,7 +2,7 @@
   <div :class="classObj" class="app-wrapper">
     <div v-if="device==='mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
     <sidebar class="sidebar-container" />
-    <div :class="{'fixed-header': fixHeader}">
+    <div :class="{'fixed-header': fixedHeader}">
       <navbar />
       <tags-view v-if="needTagsView" />
     </div>
@@ -18,10 +18,20 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+
+import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
+import RightPanel from '@/components/RightPanel'
+import Theme from '@/components/ThemePicker'
 export default {
   name: 'Layout',
   components: {
-
+    AppMain,
+    Navbar,
+    RightPanel,
+    Settings,
+    Sidebar,
+    TagsView,
+    Theme
   },
   mixins: [],
   computed: {
@@ -30,7 +40,7 @@ export default {
       device: state => state.app.device,
       showSettings: state => state.settings.showSettings,
       needTagsView: state => state.settings.tagsView,
-      fixedHeader: state => state.settings.fixedHeader,
+      fixedHeader: state => state.settings.fixedHeader
     }),
     classObj() {
       return {
@@ -52,7 +62,7 @@ export default {
   },
   methods: {
     handleClickOutside() {
-      this.$store.dispatch('app/closeSideBar', {withoutAnimation: false})
+      this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
   }
 }

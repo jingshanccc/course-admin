@@ -16,6 +16,8 @@ module.exports = {
     lintOnSave: process.env.NODE_ENV === 'development',
     productionSourceMap: false,
     devServer: {
+        // 解决 Invalid Host Header
+        disableHostCheck: true,
         port: port,
         open: true, //运行之后是否自动打开浏览器
         overlay: { //浏览器是否显示警告/错误
