@@ -20,7 +20,7 @@
 
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
-          <img alt="头像" :src="user.avatarName ? baseApi+'avatar/' + user.avatarName : Avatar" class="user-avatar">
+          <img alt="头像" :src="userInfo.avatarName ? baseApi+'avatar/' + userInfo.avatarName : Avatar" class="user-avatar">
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown">
@@ -53,7 +53,7 @@ import Search from '@/components/HeaderSearch'
 import Doc from '@/components/Doc'
 import Fullscreen from '@/components/FullScreen'
 import SizeSelect from '@/components/SizeSelect'
-import Avatar from '@/assets/images/avatar.jpg'
+import Avatar from '@/assets/images/avatar.gif'
 export default {
   name: 'Navbar',
   components: {
@@ -74,7 +74,7 @@ export default {
     ...mapGetters([
       'sidebar',
       'device',
-      'user',
+      'userInfo',
       'baseApi'
     ]),
     show: {
@@ -90,9 +90,7 @@ export default {
     }
   },
   methods: {
-    /**
-         * 展开/收起侧边栏
-         */
+    // 展开/收起侧边栏
     toggleSidebar() {
       this.$store.dispatch('app/toggleSidebar')
     },
@@ -106,7 +104,7 @@ export default {
       })
     },
     doLogout() {
-      this.$store.dispatch('LogOut').then(() => {
+      this.$store.dispatch('Logout').then(() => {
         location.reload()
       })
     }

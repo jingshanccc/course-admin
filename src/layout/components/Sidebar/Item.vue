@@ -14,15 +14,16 @@ export default {
   },
   render(h, context) {
     const { icon, title } = context.props
-    const nodes = []
+    const vnodes = []
 
     if (icon) {
-      nodes.push(<svg-icon icon-class={icon}/>)
+      vnodes.push(<svg-icon icon-class={icon}/>)
     }
+
     if (title) {
-      nodes.push(<span slot = 'title'>{{ title }}</span>)
+      vnodes.push(<span slot='title'>{(title)}</span>)
     }
-    return nodes
+    return vnodes
   }
 }
 </script>

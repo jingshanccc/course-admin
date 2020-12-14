@@ -3,10 +3,10 @@
 </template>
 
 <script>
-import echarts from 'echarts'
+// import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import { debounce } from '@/utils'
-
+const echarts = require('echarts')
 const animationDuration = 3000
 
 export default {
@@ -89,13 +89,18 @@ export default {
           type: 'radar',
           symbolSize: 0,
           areaStyle: {
-            normal: {
-              shadowBlur: 13,
-              shadowColor: 'rgba(0,0,0,.2)',
-              shadowOffsetX: 0,
-              shadowOffsetY: 10,
-              opacity: 1
-            }
+            shadowBlur: 13,
+            shadowColor: 'rgba(0,0,0,.2)',
+            shadowOffsetX: 0,
+            shadowOffsetY: 10,
+            opacity: 1
+            // normal: {
+            //   shadowBlur: 13,
+            //   shadowColor: 'rgba(0,0,0,.2)',
+            //   shadowOffsetX: 0,
+            //   shadowOffsetY: 10,
+            //   opacity: 1
+            // }
           },
           data: [{
             value: [5000, 7000, 12000, 11000, 15000, 14000],

@@ -10,8 +10,8 @@
 </template>
 
 <script>
-import pathToRegexp from 'path-to-regexp'
-
+// import pathToRegexp from 'path-to-regexp'
+const { pathToRegexp } = require('path-to-regexp')
 export default {
   data() {
     return {

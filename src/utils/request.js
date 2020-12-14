@@ -3,6 +3,10 @@ import Setting from '@/settings'
 import { getToken } from './auth'
 import { Notification } from 'element-ui'
 
+import store from '@/store'
+import Cookies from 'js-cookie'
+import router from '@/router/router'
+
 const service = axios.create({
   baseURL: process.env.NODE_ENV === 'development' ? process.env.VUE_APP_BASE_API : '/',
   timeout: Setting.timeout
@@ -11,7 +15,7 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     if (getToken()) {
-      config.headers['Authorization'] = getToken()
+      config.headers['Authorization'] = 'Bearer ' + getToken()
     }
     config.headers['Content-Type'] = 'application/json'
     return config
@@ -38,8 +42,29 @@ service.interceptors.response.use(
       }
       return Promise.reject(err)
     }
-    if (code === 401) {
-      console.log(code)
+    if (code) {
+      if (code === 401) {
+        store.dispatch('Logout').then(() => {
+          // 用户登录界面提示
+          Cookies.set('point', 401)
+          location.reload()
+        })
+      } else if (code === 403) {
+        router.push({ path: '/401' })
+      } else {
+        const errorMsg = err.response.data.message
+        if (errorMsg !== undefined) {
+          Notification.error({
+            title: errorMsg,
+            duration: 5000
+          })
+        }
+      }
+    } else {
+      Notification.error({
+        title: '接口请求失败',
+        duration: 5000
+      })
     }
     return Promise.reject(err)
   }

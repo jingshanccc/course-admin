@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     routes() {
-      return this.$store.state.permissions.routers
+      return this.$store.state.permission.routers
     }
   },
   watch: {
@@ -45,6 +45,7 @@ export default {
   methods: {
     // 从所有路由中过滤出能够被展示在侧边栏的菜单
     generateRoutes(routes, basePath = '/', prefixTitle = []) {
+      console.log(routes)
       let res = []
       for (const route of routes) {
         const data = {
@@ -71,6 +72,7 @@ export default {
 
     // 初始化模糊搜索工具
     initFuse(list) {
+      console.log(list)
       this.fuse = new Fuse(list, {
         shouldSort: true, // 是否将搜索结果排序
         threshold: 0.4, // 模糊搜索匹配阈值， 0.0为精确匹配，1.0将匹配所有

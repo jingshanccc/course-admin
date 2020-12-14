@@ -2,15 +2,17 @@
   <div :class="classObj" class="app-wrapper">
     <div v-if="device==='mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
     <sidebar class="sidebar-container" />
-    <div :class="{'fixed-header': fixedHeader}">
-      <navbar />
-      <tags-view v-if="needTagsView" />
+    <div :class="{hasTagsView:needTagsView}" class="main-container">
+      <div :class="{'fixed-header':fixedHeader}">
+        <navbar />
+        <tags-view v-if="needTagsView" />
+      </div>
+      <app-main />
+      <right-panel v-if="showSettings">
+        <settings />
+      </right-panel>
     </div>
-    <app-main />
-    <right-panel v-if="showSettings">
-      <settings />
-    </right-panel>
-
+    <!--  防止刷新后主题丢失  -->
     <Theme v-show="false" ref="theme" />
   </div>
 </template>
@@ -22,6 +24,7 @@ import Cookies from 'js-cookie'
 import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
 import RightPanel from '@/components/RightPanel'
 import Theme from '@/components/ThemePicker'
+import ResizeMixin from './mixin/ResizeHandler'
 export default {
   name: 'Layout',
   components: {
@@ -33,7 +36,7 @@ export default {
     TagsView,
     Theme
   },
-  mixins: [],
+  mixins: [ResizeMixin],
   computed: {
     ...mapState({
       sidebar: state => state.app.sidebar,

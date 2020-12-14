@@ -1,10 +1,11 @@
 const getters = {
   sidebar: state => state.app.sidebar,
   device: state => state.app.device,
-  user: state => state.user.user,
+  userInfo: state => state.user.userInfo,
   baseApi: state => state.api.baseApi,
   size: state => state.app.size,
-  permission_routers: state => state.permission.routers
+  permission_routers: state => state.permission.routers,
+  loadMenus: state => state.user.loadMenus
 }
 
 export default getters

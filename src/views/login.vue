@@ -63,10 +63,18 @@
         </el-button>
       </el-form-item>
     </el-form>
+    <!--  底部  -->
+    <div v-if="$store.state.settings.showFooter" id="el-login-footer">
+      <span v-html="$store.state.settings.footerTxt" />
+      <span> ⋅ </span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank">{{ $store.state.settings.caseNumber }}</a>
+    </div>
   </div>
 </template>
 
 <script>
+import Cookies from 'js-cookie'
+
 import Background from '@/assets/images/background.jpg'
 import { getImgCode } from '@/api/login'
 
@@ -94,6 +102,8 @@ export default {
   created() {
     // 获取验证码
     this.getCode()
+    // token是否过期
+    this.point()
   },
   methods: {
     handleLogin() {
@@ -108,7 +118,7 @@ export default {
           this.loading = true
           this.$store.dispatch('Login', user).then(() => {
             this.loading = false
-            this.$router.push({ path: '/' })
+            this.$router.push({ path: '/' }).catch(() => { })
           }).catch(() => {
             this.loading = false
             this.getCode()
@@ -121,6 +131,18 @@ export default {
         this.loginForm.id = res.content.Id
         this.codeUrl = res.content.Base64String
       })
+    },
+    point() {
+      const point = Cookies.get('point') !== undefined
+      if (point) {
+        this.$notify({
+          title: '提示',
+          message: '当前登录状态已过期，请重新登录！',
+          type: 'warning',
+          duration: 5000
+        })
+        Cookies.remove('point')
+      }
     }
   }
 }

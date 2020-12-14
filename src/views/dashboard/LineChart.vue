@@ -3,7 +3,9 @@
 </template>
 
 <script>
-import echarts from 'echarts'
+// import echarts from 'echarts'
+
+const echarts = require('echarts')
 require('echarts/theme/macarons') // echarts theme
 import resize from './mixins/resize'
 
@@ -95,13 +97,19 @@ export default {
         series: [{
           name: 'expected',
           itemStyle: {
-            normal: {
+
+            color: '#FF005A',
+            lineStyle: {
               color: '#FF005A',
-              lineStyle: {
-                color: '#FF005A',
-                width: 2
-              }
+              width: 2
             }
+            // normal: {
+            //   color: '#FF005A',
+            //   lineStyle: {
+            //     color: '#FF005A',
+            //     width: 2
+            //   }
+            // }
           },
           smooth: true,
           type: 'line',
@@ -114,16 +122,24 @@ export default {
           smooth: true,
           type: 'line',
           itemStyle: {
-            normal: {
+            color: '#3888fa',
+            lineStyle: {
               color: '#3888fa',
-              lineStyle: {
-                color: '#3888fa',
-                width: 2
-              },
-              areaStyle: {
-                color: '#f3f8ff'
-              }
+              width: 2
+            },
+            areaStyle: {
+              color: '#f3f8ff'
             }
+            // normal: {
+            //   color: '#3888fa',
+            //   lineStyle: {
+            //     color: '#3888fa',
+            //     width: 2
+            //   },
+            //   areaStyle: {
+            //     color: '#f3f8ff'
+            //   }
+            // }
           },
           data: actualData,
           animationDuration: 2800,

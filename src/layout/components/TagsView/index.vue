@@ -70,7 +70,7 @@ export default {
       this.$nextTick(() => {
         for (const tag of tags) {
           if (tag.to.path === this.$route.path) {
-            this.$refs.scrollPane.moveToCurrentTag(tag)
+            this.$refs.scrollPane.moveToTarget(tag)
             if (tag.to.fullPath !== this.$route.fullPath) {
               this.$store.dispatch('/tagsView/updateVisitedView', this.$route)
             }
@@ -144,7 +144,7 @@ export default {
         })
       })
     },
-    closeOthersTags() {
+    closeOtherTags() {
       this.$router.push(this.selectedTag)
       this.$store.dispatch('tagsView/delOtherViews', this.selectedTag).then(() => {
         this.moveToCurrentTag()

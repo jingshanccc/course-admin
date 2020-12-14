@@ -3,7 +3,9 @@
 </template>
 
 <script>
-import echarts from 'echarts'
+// import echarts from 'echarts'
+
+const echarts = require('echarts')
 require('echarts/theme/macarons') // echarts theme
 import { debounce } from '@/utils'
 
