@@ -77,6 +77,7 @@ import Cookies from 'js-cookie'
 
 import Background from '@/assets/images/background.jpg'
 import { getImgCode } from '@/api/login'
+import { encrypt } from '@/utils/rsa'
 
 export default {
   name: 'Login',
@@ -112,7 +113,7 @@ export default {
           id: this.loginForm.id,
           login_name: this.loginForm.loginName,
           name: this.loginForm.name,
-          password: this.loginForm.password
+          password: encrypt(this.loginForm.password)
         }
         if (valid) {
           this.loading = true
