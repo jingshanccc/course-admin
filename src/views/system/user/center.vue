@@ -10,7 +10,7 @@
             <div style="text-align: center">
               <div class="el-upload">
                 <img
-                  :src="user.avatarName ? baseApi + '/admin/user/avatar' + user.avatarName : Avatar"
+                  :src="userInfo.avatarName ? baseApi + '/admin/user/avatar' + userInfo.avatarName : Avatar"
                   title="点击上传头像"
                   class="avatar"
                   alt="avatar"
@@ -25,17 +25,16 @@
               </div>
             </div>
             <ul class="user-info">
-              <li><div style="height: 100%"><svg-icon icon-class="login" /> 登录账号<div class="user-right">{{ user.loginName }}</div> </div> </li>
-              <li><svg-icon icon-class="nickname" /> 用户昵称 <div class="user-right">{{ user.name }}</div></li>
-              <li><svg-icon icon-class="phone" /> 手机号码 <div class="user-right">{{ user.phone }}</div></li>
-              <li><svg-icon icon-class="email" /> 用户邮箱 <div class="user-right">{{ user.email }}</div></li>
+              <li><div style="height: 100%"><svg-icon icon-class="login" /> 登录账号<div class="user-right">{{ userInfo.login_name }}</div> </div> </li>
+              <li><svg-icon icon-class="nickname" /> 用户昵称 <div class="user-right">{{ userInfo.name }}</div></li>
+              <li><svg-icon icon-class="phone" /> 手机号码 <div class="user-right">{{ userInfo.phone }}</div></li>
+              <li><svg-icon icon-class="email" /> 用户邮箱 <div class="user-right">{{ userInfo.email }}</div></li>
               <li>
-                <svg-icon icon-class="anq"> 安全设置
-                  <div class="user-right">
-                    <a @click="$refs.pass.dialog = true">修改密码</a>
-                    <a @click="$refs.email.dialog = true">修改邮箱</a>
-                  </div>
-                </svg-icon>
+                <svg-icon icon-class="anq" /> 安全设置
+                <div class="user-right">
+                  <a @click="$refs.pass.dialog = true">修改密码 </a>
+                  <a @click="$refs.email.dialog = true">修改邮箱</a>
+                </div>
               </li>
             </ul>
           </div>
@@ -47,7 +46,7 @@
             <el-tab-pane label="用户资料" name="first">
               <el-form ref="form" :model="form" :rules="rules" style="margin-top: 10px" size="small" label-width="64px">
                 <el-form-item label="昵称" prop="nickname">
-                  <el-input v-model="form.nickname" style="width: 35%" />
+                  <el-input v-model="form.name" style="width: 35%" />
                   <span style="color: #C0C0C0; margin-left: 10px;">用户昵称不作为登录使用</span>
                 </el-form-item>
                 <el-form-item label="手机号" prop="phone">
@@ -65,42 +64,11 @@
                 </el-form-item>
               </el-form>
             </el-tab-pane>
-            <el-tab-pane label="操作日志" name="second">
-              <el-table v-loading="loading" :data="data" style="width: 100%">
-                <el-table-column prop="decription" label="行为" />
-                <el-table-column prop="requestIp" label="IP" />
-                <el-table-column :show-overflow-tooltip="true" prop="address" label="IP来源" />
-                <el-table-column prop="browser" label="浏览器" />
-                <el-table-column prop="time" label="请求耗时" align="center">
-                  <template slot-scope="scope">
-                    <el-tag v-if="scope.row.time <= 300">{{ scope.row.time }}ms</el-tag>
-                    <el-tag v-else-if="scope.row.time <= 1000" type="warning">{{ scope.row.time }}ms</el-tag>
-                    <el-tag v-else type="danger">{{ scope.row.time }}ms</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column align="right">
-                  <template slot="header">
-                    <div style="display: inline-block; float: right; cursor: pointer" @click="init">创建日期<i class="el-icon-refresh" style="margin-left: 48px" /></div>
-                  </template>
-                  <template slot-scope="scope">
-                    <span>{{ parseTime(scope.row.createTime ) }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <el-pagination
-                :total="total"
-                :current-page="page + 1"
-                style="margin-top: 8px"
-                layout="total, prev, pager, next, sizes"
-                @size-change="sizeChange"
-                @current-change="pageChange"
-              />
-            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
     </el-row>
-    <update-email ref="email" :email="user.email" />
+    <update-email ref="email" :email="userInfo.email" />
     <update-pass ref="pass" />
   </div>
 </template>
@@ -146,7 +114,7 @@ export default {
       },
       form: {},
       rules: {
-        nickname: [
+        name: [
           { required: true, message: '请输入用户昵称', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
@@ -164,7 +132,7 @@ export default {
     ])
   },
   created() {
-    this.form = { id: this.userInfo.id, nickName: this.userInfo.nickname, phone: this.userInfo.phone, gender: this.userInfo.gender }
+    this.form = { id: this.userInfo.id, name: this.userInfo.name, phone: this.userInfo.phone, gender: this.userInfo.gender }
     store.dispatch('UserInfo').then(() => {})
   },
   methods: {
@@ -177,10 +145,6 @@ export default {
         this.init()
       }
     },
-    beforeInit() {
-      this.url = 'admin/user'
-      return true
-    },
     cropUploadSuccess(jsonData, field) {
       store.dispatch('UserInfo').then(() => {})
     },
@@ -189,9 +153,22 @@ export default {
         this.$refs['form'].validate((valid) => {
           if (valid) {
             this.saveLoading = true
-            editUser(this.form).then(() => {
-              this.editSuccessNotify()
-              store.dispatch('UserInfo').then(() => {})
+            editUser(this.form).then(res => {
+              if (res.success) {
+                this.$notify({
+                  title: '保存成功',
+                  type: 'success',
+                  duration: 2500
+                })
+                store.dispatch('UserInfo').then(() => {})
+              } else {
+                this.$notify({
+                  title: '保存失败',
+                  type: 'error',
+                  message: res.message,
+                  duration: 5000
+                })
+              }
               this.saveLoading = false
             }).catch(() => {
               this.saveLoading = false

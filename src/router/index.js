@@ -54,7 +54,6 @@ export const loadMenus = (next, to) => {
       hidden: true
     })
     store.dispatch('GenerateRoutes', asyncRouter).then(() => {
-      console.log(asyncRouter)
       route.addRoutes(asyncRouter)
       next({ ...to, replace: true })
     })

@@ -15,7 +15,7 @@ export function updatePass(user) {
 
 export function updateEmail(form) {
   const data = {
-    password: encrypt(form.pass),
+    pass: encrypt(form.pass),
     email: form.email,
     code: form.code
   }
@@ -29,7 +29,7 @@ export function updateEmail(form) {
 export function sendEmailCode(email) {
   return request({
     url: '/admin/user/email-code?email=' + email,
-    method: 'post'
+    method: 'get'
   })
 }
 

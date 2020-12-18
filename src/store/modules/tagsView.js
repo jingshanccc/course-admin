@@ -21,7 +21,7 @@ const mutations = {
   ADD_CACHED_VIEW: (state, view) => {
     if (state.cachedViews.includes(view.name)) return
     if (!view.meta.noCache) {
-      state.cachedView.push(view.name)
+      state.cachedViews.push(view.name)
     }
   },
   // 关闭打开的视图
