@@ -28,9 +28,10 @@ route.beforeEach((to, from, next) => {
       if (!store.getters.userInfo.id) { // 证明vuex数据丢失 可能是页面刷新等原因 因此需要重新加载菜单
         store.dispatch('UserInfo')
         loadMenus(next, to)
-      } else if (store.getters.loadMenus) { // 首次登录
         store.dispatch('updateLoadMenus')
+      } else if (store.getters.loadMenus) { // 首次登录
         loadMenus(next, to)
+        store.dispatch('updateLoadMenus')
       } else {
         next()
       }
