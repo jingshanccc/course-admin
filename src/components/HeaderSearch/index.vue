@@ -2,7 +2,7 @@
   <div :class="{'show': show}" class="header-search">
     <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" />
     <el-select ref="headerSearchSelect" v-model="search" :remote-method="querySearch" filterable default-first-option remote placeholder="Search" class="header-search-select" @change="change">
-      <el-option v-for="item in options" :key="item.path" :value="item" :label="item.title.join(' / ')" />
+      <el-option v-for="option in options" :key="option.item.path" :value="option.item" :label="option.item.title.join(' / ')" />
     </el-select>
   </div>
 </template>
@@ -42,12 +42,17 @@ export default {
       }
     }
   },
+  mounted() {
+    this.searchPool = this.generateRoutes(this.routes)
+  },
   methods: {
     // 从所有路由中过滤出能够被展示在侧边栏的菜单
     generateRoutes(routes, basePath = '/', prefixTitle = []) {
-      console.log(routes)
       let res = []
       for (const route of routes) {
+        if (route.hidden) {
+          continue
+        }
         const data = {
           path: path.resolve(basePath, route.path),
           title: [...prefixTitle]
@@ -72,7 +77,6 @@ export default {
 
     // 初始化模糊搜索工具
     initFuse(list) {
-      console.log(list)
       this.fuse = new Fuse(list, {
         shouldSort: true, // 是否将搜索结果排序
         threshold: 0.4, // 模糊搜索匹配阈值， 0.0为精确匹配，1.0将匹配所有
@@ -103,9 +107,9 @@ export default {
     },
 
     /**
-         * 选择某个搜索结果
-         * @param val
-         */
+     * 选择某个搜索结果
+     * @param val
+     */
     change(val) {
       this.$router.push(val.path)
       this.search = ''
@@ -115,9 +119,9 @@ export default {
       })
     },
     /**
-         * 搜索
-         * @param query 输入的关键词
-         */
+     * 搜索
+     * @param query 输入的关键词
+     */
     querySearch(query) {
       if (query !== '') {
         this.options = this.fuse.search(query)
