@@ -40,3 +40,26 @@ export function editUser(data) {
     data
   })
 }
+export function edit(data) {
+  return request({
+    url: '/admin/user/save',
+    method: 'post',
+    data
+  })
+}
+export function add(data) {
+  return request({
+    url: '/admin/user/save',
+    method: 'post',
+    data
+  })
+}
+export function del(ids) {
+  return request({
+    url: '/admin/user/del',
+    method: 'delete',
+    data: ids
+  })
+}
+
+export default { edit, del, add }
