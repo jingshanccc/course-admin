@@ -12,7 +12,7 @@
   </div>
 </template>
 <script>
-import CRUD, { crud } from '@crud/crud'
+import CRUD, { crud } from '@/components/Crud/crud'
 export default {
   mixins: [crud()],
   props: {

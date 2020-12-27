@@ -11,7 +11,7 @@
   />
 </template>
 <script>
-import { pagination } from '@crud/crud'
+import { pagination } from '@/components/Crud/crud'
 export default {
   mixins: [pagination()]
 }

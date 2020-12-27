@@ -6,7 +6,7 @@
   </span>
 </template>
 <script>
-import { crud } from '@crud/crud'
+import { crud } from '@/components/Crud/crud'
 export default {
   mixins: [crud()],
   props: {

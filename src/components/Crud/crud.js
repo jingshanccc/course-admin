@@ -66,7 +66,7 @@ function CRUD(options) {
         } else if (this.add === CRUD.STATUS.PROCESSING || this.edit === CRUD.STATUS.PROCESSING) {
           return CRUD.STATUS.PROCESSING
         }
-        throw new Error('worong crud\'s cu status')
+        throw new Error('wrong crud\'s cu status')
       },
       // 标题
       get title() {
@@ -106,6 +106,9 @@ function CRUD(options) {
     delSuccessNotify() {
       crud.notify(crud.msg.del, CRUD.NOTIFICATION_TYPE.SUCCESS)
     },
+    errorNotify(content) {
+      crud.notify(content, CRUD.NOTIFICATION_TYPE.ERROR)
+    },
     // 搜索
     toQuery() {
       crud.page.page = 1
@@ -113,7 +116,7 @@ function CRUD(options) {
     },
     // 刷新
     refresh() {
-      // 如果没有调用刷新前的钩子 直接返回
+      // 如果调用刷新前的钩子失败 直接返回
       if (!callVmHook(crud, CRUD.HOOK.beforeRefresh)) {
         return
       }
@@ -128,8 +131,8 @@ function CRUD(options) {
               table.store.states.lazyTreeNodeMap = {}
             }
             const data = res.content
-            crud.page.total = data.total
-            crud.data = data.rows
+            crud.page.total = data.total ? data.total : 0
+            crud.data = data.rows ? data.rows : []
             crud.resetDataStatus()
             setTimeout(() => {
               crud.loading = false
@@ -138,6 +141,7 @@ function CRUD(options) {
             resolve(res)
           } else {
             crud.loading = false
+            crud.errorNotify(res.message)
             reject(res)
           }
         }).catch(err => {
@@ -233,12 +237,17 @@ function CRUD(options) {
         return
       }
       crud.status.add = CRUD.STATUS.PROCESSING
-      crud.crudMethod.add(crud.form).then(() => {
-        crud.status.add = CRUD.STATUS.NORMAL
-        crud.resetForm()
-        crud.addSuccessNotify()
-        callVmHook(crud, CRUD.HOOK.afterSubmit)
-        crud.toQuery()
+      crud.crudMethod.add(crud.form).then(res => {
+        if (res.success) {
+          crud.status.add = CRUD.STATUS.NORMAL
+          crud.resetForm()
+          crud.addSuccessNotify()
+          callVmHook(crud, CRUD.HOOK.afterSubmit)
+          crud.toQuery()
+        } else {
+          crud.status.add = CRUD.STATUS.PREPARED
+          crud.errorNotify(res.message)
+        }
       }).catch(() => {
         crud.status.add = CRUD.STATUS.PREPARED
         callVmHook(crud, CRUD.HOOK.afterAddError)
@@ -250,13 +259,18 @@ function CRUD(options) {
         return
       }
       crud.status.edit = CRUD.STATUS.PROCESSING
-      crud.crudMethod.edit(crud.form).then(() => {
-        crud.status.edit = CRUD.STATUS.NORMAL
-        crud.getDataStatus(crud.getDataId(crud.form)).edit = CRUD.STATUS.NORMAL
-        crud.resetForm()
-        crud.editSuccessNotify()
-        callVmHook(crud, CRUD.HOOK.afterSubmit)
-        crud.refresh()
+      crud.crudMethod.edit(crud.form).then(res => {
+        if (res.success) {
+          crud.status.edit = CRUD.STATUS.NORMAL
+          crud.getDataStatus(crud.getDataId(crud.form)).edit = CRUD.STATUS.NORMAL
+          crud.resetForm()
+          crud.editSuccessNotify()
+          callVmHook(crud, CRUD.HOOK.afterSubmit)
+          crud.refresh()
+        } else {
+          crud.status.edit = CRUD.STATUS.PREPARED
+          crud.errorNotify(res.message)
+        }
       }).catch(() => {
         crud.status.edit = CRUD.STATUS.PREPARED
         callVmHook(crud, CRUD.HOOK.afterEditError)
@@ -282,16 +296,20 @@ function CRUD(options) {
       if (!deleteAll) {
         dataStatus.delete = CRUD.STATUS.PROCESSING
       }
-      return crud.crudMethod.del(ids).then(() => {
+      return crud.crudMethod.del(ids).then(res => {
         if (deleteAll) {
           crud.delAllLoading = false
         } else {
           dataStatus.delete = CRUD.STATUS.PREPARED
         }
-        crud.delChangePage(1)
-        crud.delSuccessNotify()
-        callVmHook(crud, CRUD.HOOK.afterDeletem, data)
-        crud.refresh()
+        if (res.success) {
+          crud.delChangePage(1)
+          crud.delSuccessNotify()
+          callVmHook(crud, CRUD.HOOK.afterDeletem, data)
+          crud.refresh()
+        } else {
+          crud.errorNotify(res.message)
+        }
       }).catch(() => {
         if (deleteAll) {
           crud.delAllLoading = false
@@ -328,7 +346,7 @@ function CRUD(options) {
         }
       })
       return {
-        page: crud.page.page - 1,
+        page: crud.page.page,
         size: crud.page.size,
         sort: crud.sort,
         ...crud.query,
@@ -357,10 +375,10 @@ function CRUD(options) {
     },
     // 重置数据状态
     resetDataStatus() {
-      const dataStaus = {}
+      const dataStatus = {}
       function resetStatus(datas) {
         datas.forEach(item => {
-          dataStaus[crud.getDataId(item)] = {
+          dataStatus[crud.getDataId(item)] = {
             delete: CRUD.STATUS.NORMAL,
             edit: CRUD.STATUS.NORMAL
           }
@@ -370,7 +388,7 @@ function CRUD(options) {
         })
       }
       resetStatus(crud.data)
-      crud.dataStatus = dataStaus
+      crud.dataStatus = dataStatus
     },
     // 获取数据ID字段名
     getDataId(data) {
@@ -557,8 +575,8 @@ function callVmHook(crud, hook) {
     if (tagHook && vm[tagHook]) {
       ret = vm[tagHook].apply(vm, nargs) !== false && ret
     }
-    return ret
   })
+  return ret
 }
 
 function mergeOptions(src, opts) {

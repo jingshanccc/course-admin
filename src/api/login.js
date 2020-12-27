@@ -58,7 +58,7 @@ export function getImgCode() {
  */
 export function logout(token, refreshToken) {
   return request({
-    url: '/admin/user/logout',
+    url: '/oauth/logout',
     method: 'get',
     params: {
       Str: token + '$' + refreshToken

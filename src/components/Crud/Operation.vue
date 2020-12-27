@@ -16,12 +16,12 @@
       </el-button>
       <el-button
         v-if="crud.optShow.edit"
-        v-premission="permission.edit"
+        v-permission="permission.edit"
         class="filter-item"
         size="mini"
         type="success"
         icon="el-icon-edit"
-        :disabled="curd.selections.length !== 1"
+        :disabled="crud.selections.length !== 1"
         @click="crud.toEdit(crud.selections[0])"
       >
         修改
@@ -30,6 +30,7 @@
         v-if="crud.optShow.del"
         slot="reference"
         v-permission="permission.del"
+        class="filter-item"
         type="danger"
         icon="el-icon-delete"
         size="mini"
@@ -39,18 +40,18 @@
       >
         删除
       </el-button>
-      <el-button
-        v-if="crud.optShow.download"
-        :loading="crud.downloadLoading"
-        :disabled="!crud.data.length"
-        class="filter-item"
-        size="mini"
-        type="warning"
-        icon="el-icon-download"
-        @click="crud.doExport"
-      >
-        导出
-      </el-button>
+      <!--      <el-button-->
+      <!--        v-if="crud.optShow.download"-->
+      <!--        :loading="crud.downloadLoading"-->
+      <!--        :disabled="!crud.data.length"-->
+      <!--        class="filter-item"-->
+      <!--        size="mini"-->
+      <!--        type="warning"-->
+      <!--        icon="el-icon-download"-->
+      <!--        @click="crud.doExport"-->
+      <!--      >-->
+      <!--        导出-->
+      <!--      </el-button>-->
       <!-- 右侧插槽 -->
       <slot name="right" />
     </span>
@@ -70,7 +71,8 @@
       <el-popover
         placement="bottom-end"
         width="150"
-        trigger="click">
+        trigger="click"
+      >
         <el-button slot="reference" size="mini" icon="el-icon-s-grid">
           <i class="fa fa-caret-down" aria-hidden="true" />
         </el-button>
@@ -81,7 +83,7 @@
   </div>
 </template>
 <script>
-import CRUD, { crud } from '@crud/crud'
+import CRUD, { crud } from '@/components/Crud/crud'
 
 function sortWithRef(src, ref) {
   const result = Object.assign([], ref)

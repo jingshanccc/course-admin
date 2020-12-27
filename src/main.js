@@ -9,6 +9,9 @@ import store from './store'
 import router from './router/router'
 import './router/index'
 
+// 权限 v-permission
+import permission from './components/Permission'
+
 import './assets/icons'
 
 // global css
@@ -18,6 +21,7 @@ import './assets/styles/index.scss'
 Vue.use(Element, {
   size: Cookies.get('size') || 'small'
 })
+Vue.use(permission)
 Vue.config.productionTip = false
 
 new Vue({

@@ -41,13 +41,10 @@ export function editUser(data) {
   })
 }
 export function edit(data) {
-  return request({
-    url: '/admin/user/save',
-    method: 'post',
-    data
-  })
+  return add(data)
 }
 export function add(data) {
+  data.roles = JSON.stringify(data.roles)
   return request({
     url: '/admin/user/save',
     method: 'post',
@@ -56,9 +53,11 @@ export function add(data) {
 }
 export function del(ids) {
   return request({
-    url: '/admin/user/del',
-    method: 'delete',
-    data: ids
+    url: '/admin/user/delete',
+    method: 'post',
+    data: {
+      Rows: ids
+    }
   })
 }
 

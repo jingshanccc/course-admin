@@ -1,25 +1,26 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <el-col :xs="15" :sm="18" :md="19" :lg="20" :xl="20">
+      <el-col :xs="15" :sm="18" :md="19" :lg="24" :xl="24">
         <!-- 工具栏 -->
         <div class="head-container">
           <div v-if="crud.props.searchToggle">
             <!-- 搜索 -->
             <el-input v-model="query.blurry" clearable size="small" placeholder="输入名称或者邮箱搜索" style="width: 200px" class="filter-item" @keyup.enter.native="crud.toQuery" />
-            <date-range-picker v-model="query.createTime" class="data-item" />
+            <date-range-picker v-model="query.createTime" class="date-item" />
             <search-reset />
           </div>
           <operation show="" :permission="permission" />
         </div>
         <!-- 表单 -->
+        <!-- eslint-disable-next-line -->
         <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="570px">
           <el-form ref="form" :inline="true" :model="form" :rules="rules" size="small" label-width="66px">
-            <el-form-item label="用户名" prop="loginName">
-              <el-input v-model="form.loginName" />
+            <el-form-item label="用户名" prop="login_name">
+              <el-input v-model="form.login_name" />
             </el-form-item>
             <el-form-item label="电话" prop="phone">
-              <el-input v-model.number="form.phone" />
+              <el-input v-model="form.phone" />
             </el-form-item>
             <el-form-item label="昵称" prop="name">
               <el-input v-model="form.name" />
@@ -51,23 +52,23 @@
                 />
               </el-select>
             </el-form-item>
-            <div slot="footer" class="dialog-footer">
-              <el-button type="text" @click="crud.cancelCU">取消</el-button>
-              <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
-            </div>
           </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button type="text" @click="crud.cancelCU">取消</el-button>
+            <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
+          </div>
         </el-dialog>
         <!-- 表格 -->
         <el-table ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%" @selection-change="crud.selectionChangeHandler">
           <el-table-column :selectable="checkBoxT" type="selection" width="55" />
-          <el-table-column :show-overflow-tooltip="true" prop="loginName" label="用户名" />
+          <el-table-column :show-overflow-tooltip="true" prop="login_name" label="用户名" />
           <el-table-column :show-overflow-tooltip="true" prop="name" label="昵称" />
           <el-table-column prop="gender" label="性别" />
           <el-table-column :show-overflow-tooltip="true" prop="phone" width="100" label="电话" />
           <el-table-column :show-overflow-tooltip="true" prop="email" width="135" label="邮箱" />
-          <el-table-column :show-overflow-tooltip="true" prop="createTime" width="135" label="创建日期">
+          <el-table-column :show-overflow-tooltip="true" prop="create_time" width="135" label="创建日期">
             <template slot-scope="scope">
-              <span>{{ parseTime(scope.row.createTime) }}</span>
+              <span>{{ parseTime(scope.row.create_time) }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -81,7 +82,7 @@
               <row-operation
                 :data="scope.row"
                 :permission="permission"
-                :disabled-dle="scope.row.id === user.id"
+                :disabled-dle="scope.row.id === userInfo.id"
               />
             </template>
           </el-table-column>
@@ -96,18 +97,18 @@
 import crudUser from '@/api/system/user'
 import { roleList, roleLevel } from '@/api/system/role'
 
-import CRUD, { presenter, header, form, crud } from '@crud/crud'
+import CRUD, { presenter, header, form, crud } from '@/components/Crud/crud'
 
 import { isValidPhone } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 
 import DateRangePicker from '@/components/DateRangePicker'
-import Operation from '@crud/Operation'
-import RowOperation from '@crud/RowOperation'
-import pagination from '@crud/Pagination'
-import SearchReset from '@crud/SearchReset'
-const defaultForm = { id: null, username: null, nickName: null, gender: '男', email: null, enabled: 'false', roles: [], jobs: [], dept: { id: null }, phone: null }
-let userRoles = []
+import Operation from '@/components/Crud/Operation'
+import RowOperation from '@/components/Crud/RowOperation'
+import pagination from '@/components/Crud/Pagination'
+import SearchReset from '@/components/Crud/SearchReset'
+const defaultForm = { id: null, login_name: null, name: null, gender: '男', email: null, roles: [], phone: null }
+let userRoles = [] // 用户角色
 export default {
   name: 'User',
   components: {
@@ -142,8 +143,8 @@ export default {
     }
     return {
       height: document.documentElement.clientHeight,
-      roles: [],
-      roleData: [],
+      roles: [], // 系统中可选的角色
+      roleData: [], // 用户自身的角色
       level: 3,
       defaultProps: {
         children: 'children',
@@ -156,11 +157,11 @@ export default {
         del: ['admin', 'user:del']
       },
       rules: {
-        username: [
+        login_name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
-        nickName: [
+        name: [
           { required: true, message: '请输入用户昵称', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
@@ -179,11 +180,14 @@ export default {
       'userInfo'
     ])
   },
-  created() {
+  mounted() {
     const _this = this
     window.onresize = function re() {
       _this.height = document.documentElement.clientHeight
     }
+  },
+  created() {
+    this.crud.msg.add = '新增成功，默认密码：123456'
   },
   methods: {
     changeRole(value) {
@@ -204,14 +208,14 @@ export default {
     [CRUD.HOOK.afterToCU](crud, form) {
       this.getRoles()
       this.getRoleLevel()
-      form.enabled = form.enabled.toString()
     },
     // 新增前将多选的值置空
     [CRUD.HOOK.beforeToAdd]() {
       this.roleData = []
     },
     // 初始化编辑的角色
-    [CRUD.HOOK.beforeToEdit]() {
+    [CRUD.HOOK.beforeToEdit](crud, form) {
+      form.roles = form.roles ? JSON.parse(form.roles) : []
       this.roleData = []
       userRoles = []
       const _this = this
@@ -230,7 +234,7 @@ export default {
         })
         return false
       }
-      crud.form.roles = userRoles
+      crud.form.roles = this.roleData
       return true
     },
     // 获取弹窗内的角色数据
@@ -256,9 +260,3 @@ export default {
   }
 }
 </script>
-<style rel="stylesheet/scss" lang="scss" scoped>
-::v-deep .vue-treeselect__control, ::v-deep .vue-treeselect__placeholder, ::v-deep .vue-treeselect__single-value {
-  height: 30px;
-  line-height: 30px;
-}
-</style>
