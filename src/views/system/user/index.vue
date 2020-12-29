@@ -249,7 +249,7 @@ export default {
     getRoleLevel() {
       roleLevel().then(res => {
         if (res.success) {
-          this.level = res.content.level
+          this.level = res.content
         }
       }).catch(() => {})
     },
