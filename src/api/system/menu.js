@@ -30,3 +30,52 @@ export function getMenuChild(id) {
     }
   })
 }
+
+export function getMenus(params) {
+  return request({
+    url: '/admin/resource/list',
+    method: 'post',
+    data: {
+      ...params
+    }
+  })
+}
+
+export function getMenuParents(ids) {
+  const data = ids.length || ids.length === 0 ? ids : Array.of(ids)
+  return request({
+    url: '/admin/resource/parents',
+    method: 'post',
+    data: {
+      Ids: data
+    }
+  })
+}
+
+export function add(data) {
+  return request({
+    url: '/admin/resource',
+    method: 'post',
+    data
+  })
+}
+
+export function edit(data) {
+  return request({
+    url: '/admin/resource',
+    method: 'put',
+    data
+  })
+}
+
+export function del(ids) {
+  return request({
+    url: '/admin/resource',
+    method: 'delete',
+    data: {
+      Ids: ids
+    }
+  })
+}
+
+export default { add, edit, del, getMenuTree, getMenuChild, buildMenus, getMenus, getMenuParents }
