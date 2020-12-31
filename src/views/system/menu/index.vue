@@ -16,9 +16,9 @@
       <el-form ref="form" :inline="true" :model="form" :rules="rules" size="small" label-width="80px">
         <el-form-item label="菜单类型" prop="type">
           <el-radio-group v-model="form.type" size="mini" style="width: 178px">
-            <el-radio-button label="0">目录</el-radio-button>
-            <el-radio-button label="1">菜单</el-radio-button>
-            <el-radio-button label="2">按钮</el-radio-button>
+            <el-radio-button :label="0">目录</el-radio-button>
+            <el-radio-button :label="1">菜单</el-radio-button>
+            <el-radio-button :label="2">按钮</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="菜单图标" prop="icon">
@@ -35,13 +35,13 @@
             </el-input>
           </el-popover>
         </el-form-item>
-        <el-form-item v-show="form.type.toString() !== '2'" label="外联菜单" prop="i_frame">
+        <el-form-item v-show="form.type.toString() !== '2'" label="是否外链" prop="i_frame">
           <el-radio-group v-model="form.i_frame" size="mini">
             <el-radio-button label="true">是</el-radio-button>
             <el-radio-button label="false">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-show="form.type.toString() === '1'" label="可缓存菜单" prop="cache">
+        <el-form-item v-show="form.type.toString() === '1'" label="可缓存" prop="cache">
           <el-radio-group v-model="form.cache" size="mini">
             <el-radio-button label="true">是</el-radio-button>
             <el-radio-button label="false">否</el-radio-button>
@@ -100,7 +100,7 @@
       row-key="id"
       @select="crud.selectChange"
       @select-all="crud.selectAllChange"
-      @select-change="crud.selectionChangeHandler"
+      @selection-change="crud.selectionChangeHandler"
     >
       <el-table-column type="selection" width="55" />
       <el-table-column :show-overflow-tooltip="true" label="菜单标题" width="125px" prop="title" />
@@ -180,6 +180,7 @@ export default {
     return CRUD({
       title: '菜单',
       url: '/admin/resource/list',
+      sort: ['sort,asc'],
       crudMethod: { ...crudMenu }
     })
   },
@@ -243,7 +244,8 @@ export default {
       if (action === LOAD_CHILDREN_OPTIONS) {
         crudMenu.getMenuTree(parentNode.id).then(res => {
           if (res.success) {
-            parentNode.children = res.content.rows.map(data => {
+            var rows = res.content.rows ? res.content.rows : []
+            parentNode.children = rows.map(data => {
               if (data.type !== 2) {
                 data.children = null
               }

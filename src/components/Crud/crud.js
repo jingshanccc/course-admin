@@ -253,7 +253,7 @@ function CRUD(options) {
         callVmHook(crud, CRUD.HOOK.afterAddError)
       })
     },
-    // 执行添加
+    // 执行编辑
     doEdit() {
       if (!callVmHook(crud, CRUD.HOOK.beforeSubmit)) {
         return
