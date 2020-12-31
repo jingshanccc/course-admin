@@ -179,7 +179,7 @@ export default {
     getMenuData(node, resolve) {
       setTimeout(() => {
         getMenuTree(node.data.id ? node.data.id : 0).then(res => {
-          resolve(res.content.rows)
+          resolve(res.content.rows ? res.content.rows : [])
         })
       }, 100)
     },
