@@ -20,7 +20,7 @@
 
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
-          <img alt="头像" :src="userInfo.avatarName ? baseApi+'avatar/' + userInfo.avatarName : Avatar" class="user-avatar">
+          <img alt="头像" :src="userInfo.avatar_name ? userInfo.avatar_path : Avatar" class="user-avatar">
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown">

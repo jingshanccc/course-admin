@@ -6,7 +6,6 @@ const getters = {
   size: state => state.app.size,
   permission_routers: state => state.permission.routers,
   loadMenus: state => state.user.loadMenus,
-  updateAvatarApi: state => state.api.updateAvatarApi,
   permissions: state => state.user.userInfo.permissions
 }
 

@@ -5,7 +5,13 @@
       {{ text }}
     </el-button>
     <input :id="inputId+'-input'" ref="file" type="file" style="display: none" @change="uploadFile()">
-    <el-progress v-if="progressShow" :text-inside="true" :stroke-width="24" :percentage="percentage" status="success" />
+    <el-dialog
+      title="上传进度"
+      :visible.sync="progressShow"
+      width="30%"
+    >
+      <el-progress type="dashboard" :percentage="percentage" status="success" />
+    </el-dialog>
   </div>
 </template>
 <script>

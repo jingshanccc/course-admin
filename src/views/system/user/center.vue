@@ -8,21 +8,18 @@
           </div>
           <div>
             <div style="text-align: center">
-              <div class="el-upload">
-                <img
-                  :src="userInfo.avatarName ? baseApi + '/admin/user/avatar' + userInfo.avatarName : Avatar"
-                  title="点击上传头像"
-                  class="avatar"
-                  alt="avatar"
-                  @click="toggleShow"
-                >
-                <my-upload
-                  v-model="show"
-                  :headers="headers"
-                  :url="updateAvatarApi"
-                  @crop-upload-success="cropUploadSuccess"
-                />
-              </div>
+              <img
+                :src="userInfo.avatar_path ? userInfo.avatar_path : Avatar"
+                title="点击上传头像"
+                class="avatar"
+                alt="avatar"
+              >
+              <upload
+                :input-id="'image-upload'"
+                :text="'上传头像'"
+                :suffixes="['jpg', 'jpeg','png', 'gif']"
+                :after-upload="cropUploadSuccess"
+              />
             </div>
             <ul class="user-info">
               <li><div style="height: 100%"><svg-icon icon-class="login" /> 登录账号<div class="user-right">{{ userInfo.login_name }}</div> </div> </li>
@@ -75,13 +72,12 @@
 <script>
 import Avatar from '@/assets/images/avatar.gif'
 
-import MyUpload from 'vue-image-crop-upload'
+import Upload from '@/components/Upload'
 import UpdatePass from '@/views/system/user/center/UpdatePass'
 import UpdateEmail from '@/views/system/user/center/UpdateEmail'
 
 import { mapGetters } from 'vuex'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
 
 import { isValidPhone } from '@/utils/validate'
 import { parseTime } from '@/utils'
@@ -90,7 +86,7 @@ import { editUser } from '@/api/system/user'
 export default {
   name: 'Center',
   components: {
-    MyUpload,
+    Upload,
     UpdateEmail,
     UpdatePass
   },
@@ -105,13 +101,9 @@ export default {
       }
     }
     return {
-      show: false,
       Avatar: Avatar,
       activeName: 'first',
       saveLoading: false,
-      headers: {
-        'Authorization': 'Bearer ' + getToken()
-      },
       form: {},
       rules: {
         name: [
@@ -127,7 +119,6 @@ export default {
   computed: {
     ...mapGetters([
       'userInfo',
-      'updateAvatarApi',
       'baseApi'
     ])
   },
@@ -137,16 +128,18 @@ export default {
   },
   methods: {
     parseTime,
-    toggleShow() {
-      this.show = !this.show
-    },
     handleClick(tab, event) {
       if (tab.name === 'second') {
         this.init()
       }
     },
-    cropUploadSuccess(jsonData, field) {
-      store.dispatch('UserInfo').then(() => {})
+    cropUploadSuccess(res) {
+      this.userInfo.avatar_path = res.content.path
+      this.userInfo.avatar_name = res.content.name
+      editUser(this.userInfo).then(() => {
+        // 需要更新 缓存中的userinfo
+        store.dispatch('UserInfo').then(() => {})
+      })
     },
     doSubmit() {
       if (this.$refs['form']) {

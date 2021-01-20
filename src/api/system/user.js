@@ -35,7 +35,7 @@ export function sendEmailCode(email) {
 
 export function editUser(data) {
   return request({
-    url: '/admin/user/save',
+    url: '/admin/user/save-info',
     method: 'post',
     data
   })
