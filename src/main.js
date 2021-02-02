@@ -16,7 +16,10 @@ import './assets/icons'
 
 // global css
 import './assets/styles/index.scss'
-
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
+// use
+Vue.use(mavonEditor)
 // element组件全局size
 Vue.use(Element, {
   size: Cookies.get('size') || 'small'

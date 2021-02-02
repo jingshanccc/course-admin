@@ -116,8 +116,8 @@
             {{ course.summary }}
           </div>
           <div style="padding: 0 10px">
-            <el-button type="warning" circle>大章</el-button>
-            <el-button type="success" circle>内容</el-button>
+            <el-button type="warning" circle @click="contentOrChapter('CourseChapter', course)">大章</el-button>
+            <el-button type="success" circle @click="contentOrChapter('CourseContent', course)">内容</el-button>
             <row-operation :data="course" :permission="permission" style="float: right" />
           </div>
         </el-card>
@@ -126,6 +126,8 @@
   </div>
 </template>
 <script>
+import Cookies from 'js-cookie'
+
 import { allTeacher } from '@/api/business/teacher'
 import crudCourse from '@/api/business/course'
 
@@ -213,6 +215,11 @@ export default {
     cropUploadSuccess(res) {
       this.crud.form.image = res.content.path
       this.previewList.push(res.content.path)
+    },
+    contentOrChapter(name, course) {
+      Cookies.remove('currentCourse')
+      Cookies.set('currentCourse', course)
+      this.$router.push({ name: name })
     }
   }
 }

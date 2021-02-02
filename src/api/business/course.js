@@ -26,4 +26,25 @@ export function del(ids) {
   })
 }
 
+export function findContent(id) {
+  return request({
+    url: '/admin/course/find-content',
+    method: 'get',
+    params: {
+      Str: id
+    }
+  })
+}
+
+export function saveContent(id, content) {
+  return request({
+    url: '/admin/course/save-content',
+    method: 'post',
+    data: {
+      id: id,
+      content: content
+    }
+  })
+}
+
 export default { add, edit, del }
