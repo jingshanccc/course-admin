@@ -108,7 +108,6 @@ export default {
         'shardIndex': shardIndex,
         'shardSize': shardSize,
         'shardTotal': shardTotal,
-        'use': _this.use,
         'name': file.name,
         'suffix': suffix,
         'size': file.size,
