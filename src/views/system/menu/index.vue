@@ -37,20 +37,20 @@
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="是否外链" prop="i_frame">
           <el-radio-group v-model="form.i_frame" size="mini">
-            <el-radio-button label="true">是</el-radio-button>
-            <el-radio-button label="false">否</el-radio-button>
+            <el-radio-button :label="true">是</el-radio-button>
+            <el-radio-button :label="false">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() === '1'" label="可缓存" prop="cache">
           <el-radio-group v-model="form.cache" size="mini">
-            <el-radio-button label="true">是</el-radio-button>
-            <el-radio-button label="false">否</el-radio-button>
+            <el-radio-button :label="true">是</el-radio-button>
+            <el-radio-button :label="false">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="form.type.toString() !== '2'" label="可见菜单" prop="hidden">
           <el-radio-group v-model="form.hidden" size="mini">
-            <el-radio-button label="false">是</el-radio-button>
-            <el-radio-button label="true">否</el-radio-button>
+            <el-radio-button :label="false">是</el-radio-button>
+            <el-radio-button :label="true">否</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="form.type.toString() !== '2'" label="菜单标题" prop="title">
