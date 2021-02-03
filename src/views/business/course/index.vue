@@ -10,7 +10,6 @@
         class="filter-item"
         @keyup.enter.native="crud.toQuery"
       />
-      <date-range-picker v-model="query.createTime" class="date-item" />
       <search-reset />
     </div>
     <operation :permission="permission" />
@@ -134,7 +133,6 @@ import crudCourse from '@/api/business/course'
 import Upload from '@/components/Upload'
 import Cover from '@/assets/images/background.jpg'
 import { formatSecond } from '@/utils'
-import DateRangePicker from '@/components/DateRangePicker'
 import SearchReset from '@/components/Crud/SearchReset'
 import Operation from '@/components/Crud/Operation'
 import CRUD, { form, header, presenter } from '@/components/Crud/crud'
@@ -142,7 +140,7 @@ import RowOperation from '@/components/Crud/RowOperation'
 
 const defaultForm = { id: null, name: null, summary: null, price: 0.0, level: null, status: '草稿', image: null, charge: '免费', teacherId: null }
 export default {
-  components: { RowOperation, SearchReset, DateRangePicker, Operation, Upload },
+  components: { RowOperation, SearchReset, Operation, Upload },
   mixins: [
     presenter(),
     header(),
@@ -205,6 +203,11 @@ export default {
   },
   methods: {
     formatSecond,
+    [CRUD.HOOK.beforeToEdit](crud, form) {
+      const _this = this
+      _this.previewList = []
+      _this.previewList.push(form.image)
+    },
     allTeacher() {
       allTeacher().then(res => {
         if (res.success) {
@@ -214,6 +217,7 @@ export default {
     },
     cropUploadSuccess(res) {
       this.crud.form.image = res.content.path
+      this.previewList = []
       this.previewList.push(res.content.path)
     },
     contentOrChapter(name, course) {
