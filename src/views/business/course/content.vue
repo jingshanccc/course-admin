@@ -57,7 +57,7 @@ export default {
   },
   methods: {
     imgAdd(pos, $file) {
-      let url = $file.name
+      const _this = this
       // 生成文件标识，标识多次上传的是不是同一个文件
       const key = hex_md5($file.name + $file.size + $file.type + 'course')
       const key10 = parseInt(key, 16)
@@ -77,18 +77,15 @@ export default {
         }
         upload(param).then(res => {
           if (res.success) {
-            url = res.content.path
-            console.log(url)
+            _this.$refs.md.$img2Url(pos, res.content.path)
           } else {
-            this.$message({
+            _this.$message({
               message: '文件上传失败，请重试',
               type: 'warning'
             })
           }
         })
       }
-      console.log(url)
-      this.$refs.md.$img2Url(pos, url)
     },
     saveContent() {
       saveContent(this.course.id, this.content).then(res => {
