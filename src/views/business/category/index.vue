@@ -124,6 +124,7 @@ export default {
     [CRUD.HOOK.beforeRefresh]() {
       if (this.$refs.categoryDetail) {
         this.$refs.categoryDetail.query.parent = ''
+        this.$refs.categoryDetail.parentName = ''
       }
       return true
     },
