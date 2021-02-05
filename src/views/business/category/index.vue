@@ -57,7 +57,7 @@
           <div slot="header" class="clearfix">
             <span>分类详情</span>
             <el-button
-              v-if="checkPermission(['admin', 'category:add']) && this.$refs.categoryDetail"
+              v-if="checkPermission(['admin', 'category:add']) && this.$refs.categoryDetail && this.$refs.categoryDetail.parentName"
               class="filter-item"
               size="mini"
               style="float: right;padding: 4px 10px"
