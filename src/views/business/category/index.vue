@@ -121,6 +121,12 @@ export default {
   },
   methods: {
     checkPermission,
+    [CRUD.HOOK.beforeRefresh]() {
+      if (this.$refs.categoryDetail) {
+        this.$refs.categoryDetail.query.parent = ''
+      }
+      return true
+    },
     currentChangeHandler(val) {
       if (val) {
         this.$refs.categoryDetail.query.parent = val.id
