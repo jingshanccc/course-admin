@@ -115,7 +115,7 @@
             {{ course.summary }}
           </div>
           <div style="padding: 0 10px">
-            <el-button type="warning" circle @click="contentOrChapter('CourseChapter', course)">大章</el-button>
+            <el-button type="warning" circle @click="contentOrChapter('CourseChapter', course)">章节</el-button>
             <el-button type="success" circle @click="contentOrChapter('CourseContent', course)">内容</el-button>
             <row-operation :data="course" :permission="permission" style="float: right" />
           </div>

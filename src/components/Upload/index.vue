@@ -9,6 +9,7 @@
       title="上传进度"
       :visible.sync="progressShow"
       width="30%"
+      append-to-body
     >
       <el-progress type="dashboard" :percentage="percentage" status="success" />
     </el-dialog>
@@ -35,7 +36,7 @@ export default {
     },
     shardSize: {
       type: Number,
-      default: 5 * 1024 * 1024
+      default: 2 * 1024 * 1024
     },
     url: {
       type: String,
@@ -55,7 +56,6 @@ export default {
   methods: {
     uploadFile() {
       const _this = this
-      console.log(_this.$refs.file.files)
       const file = _this.$refs.file.files[0]
       console.log(file)
       /*
@@ -93,6 +93,7 @@ export default {
           message: '文件格式不正确！只支持上传：' + suffixes.join(','),
           type: 'warning'
         })
+        _this.clearFileInput()
         return
       }
 
@@ -124,6 +125,8 @@ export default {
       const _this = this
       fileUpload.check(param.key).then((resp) => {
         if (resp.success) {
+          debugger
+          console.log('in')
           const obj = resp.content
           if (!obj || !obj.id) {
             param.shardIndex = 1
@@ -135,6 +138,7 @@ export default {
               message: '文件极速秒传成功！',
               type: 'success'
             })
+            _this.clearFileInput()
             _this.afterUpload(resp)
           } else {
             param.shardIndex = obj.shardIndex + 1
@@ -146,6 +150,7 @@ export default {
             message: '文件上传失败',
             type: 'warning'
           })
+          _this.clearFileInput()
         }
       })
     },
@@ -179,6 +184,7 @@ export default {
               _this.upload(param)
             } else {
               _this.progressShow = false
+              _this.clearFileInput()
               _this.afterUpload(resp)
             }
           } else {
@@ -187,6 +193,7 @@ export default {
               type: 'warning'
             })
             _this.progressShow = false
+            _this.clearFileInput()
           }
         })
       }
@@ -204,6 +211,10 @@ export default {
 
     selectFile() {
       this.$refs.file.click()
+    },
+    // 清除文件输入框内容
+    clearFileInput() {
+      document.getElementById(this.inputId + '-input').value = null
     }
   }
 }
