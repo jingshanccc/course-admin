@@ -9,6 +9,8 @@ import store from './store'
 import router from './router/router'
 import './router/index'
 
+import axios from 'axios'
+
 // 权限 v-permission
 import permission from './components/Permission'
 
@@ -26,6 +28,8 @@ Vue.use(Element, {
 })
 Vue.use(permission)
 Vue.config.productionTip = false
+
+Vue.prototype.axios = axios
 
 new Vue({
   store,

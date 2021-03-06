@@ -4,21 +4,55 @@
       <el-icon class="el-icon-upload" />
       {{ text }}
     </el-button>
-    <input :id="inputId+'-input'" ref="file" type="file" style="display: none" @change="uploadFile()">
+    <input :id="inputId+'-input'" ref="file" type="file" style="display: none" @change="handleFileChange">
     <el-dialog
       title="上传进度"
       :visible.sync="progressShow"
-      width="30%"
+      width="40%"
+      :show-close="false"
+      :close-on-click-modal="false"
       append-to-body
+      style="text-align: center"
     >
-      <el-progress type="dashboard" :percentage="percentage" status="success" />
+      <el-card v-loading="status === Status.merge" element-loading-text="正在合并文件" element-loading-spinner="el-icon-loading">
+        <div style="display: inline-block">
+          <div>计算文件 hash</div>
+          <el-progress type="dashboard" :percentage="hashPercentage" />
+        </div>
+        <div style="display: inline-block">
+          <div>总进度</div>
+          <el-progress type="dashboard" :percentage="fakeUploadPercentage" />
+        </div>
+        <div>
+          <el-button
+            v-if="status === Status.pause"
+            @click="handleResume"
+          >恢复</el-button>
+          <el-button
+            v-else
+            :disabled="status !== Status.uploading || !container.hash"
+            @click="handlePause"
+          >暂停</el-button>
+          <el-button
+            @click="handleCancel"
+          >取消</el-button>
+        </div>
+      </el-card>
     </el-dialog>
   </div>
 </template>
 <script>
-import { hex_md5 } from '@/utils/md5'
-import { tenTo62 } from '@/utils'
+import HashWorker from './hash.worker'
 import fileUpload from '@/api/file/file'
+
+// 上传状态枚举
+const Status = {
+  wait: 'wait', // 默认-等待上传
+  pause: 'pause',
+  uploading: 'uploading',
+  merge: 'merge'
+}
+
 export default {
   name: 'Upload',
   props: {
@@ -36,7 +70,7 @@ export default {
     },
     shardSize: {
       type: Number,
-      default: 2 * 1024 * 1024
+      default: 3 * 1024 * 1024
     },
     url: {
       type: String,
@@ -47,39 +81,139 @@ export default {
       default: null
     }
   },
-  data: function() {
+  data: () => {
     return {
+      Status,
+      status: Status.wait,
+      container: {
+        worker: null,
+        file: null,
+        hash: ''
+      },
+      fileInfo: {
+        name: '',
+        key: '',
+        suffix: '',
+        size: 0,
+        shardTotal: 0
+      },
+      uploadParams: [], // 上传分片方法的请求参数 [fileDto] 列表
+      hashPercentage: 0,
+      // 当暂停会取消请求导致进度条后退 所以需要一个假的进度
+      fakeUploadPercentage: 0,
       progressShow: false,
-      percentage: 0
+      cancelTokens: [], // 存放取消请求的token
+      canMerge: false
+    }
+  },
+  computed: {
+    uploadPercentage() {
+      if (!this.container.file || !this.uploadParams.length) return 0
+      const loaded = this.uploadParams
+        .map(item => item.size * item.percentage)
+        .reduce((acc, cur) => acc + cur)
+      return parseInt((loaded / this.container.file.size).toFixed(2))
+    }
+  },
+  watch: {
+    uploadPercentage(now) {
+      if (now > this.fakeUploadPercentage) {
+        this.fakeUploadPercentage = now
+      }
+    },
+    canMerge(cur) {
+      if (cur) {
+        console.log('进入 merge')
+        this.merge()
+      }
     }
   },
   methods: {
-    uploadFile() {
-      const _this = this
-      const file = _this.$refs.file.files[0]
-      console.log(file)
-      /*
-        name: "test.mp4"
-        lastModified: 1901173357457
-        lastModifiedDate: Tue May 27 2099 14:49:17 GMT+0800 (中国标准时间) {}
-        webkitRelativePath: ""
-        size: 37415970
-        type: "video/mp4"
-      */
+    // 暂停上传
+    handlePause() {
+      this.status = Status.pause
+      this.resetData()
+    },
+    // 重置页面数据
+    resetData() {
+      // 利用 axios 请求的 cancelToken 来停止未完成的上传请求
+      this.cancelTokens.forEach(source => source.cancel('cancel upload'))
+      this.cancelTokens = []
+      if (this.container.worker) {
+        this.container.worker.onmessage = null
+      }
+    },
+    // 恢复上传
+    async handleResume() {
+      this.status = Status.uploading
+      const { uploadedList } = await this.verifyUpload(this.container.hash)
+      await this.uploadChunks(uploadedList)
+    },
+    // 取消上传
+    handleCancel() {
+      // 如果正在计算 hash 则中止 hash 计算过程
+      if (!this.container.hash) {
+        this.container.worker.terminate()
+      } else {
+        // 如果正在上传 则先暂停
+        if (this.status === Status.uploading) {
+          this.status = Status.pause
+        }
+        fileUpload.cancel(this.container.hash)
+      }
+      this.resetData()
+      this.$message({
+        message: '文件上传已取消！',
+        type: 'success'
+      })
+      this.clearFileInput()
+    },
+    // 构造上传分片请求
+    uploadRequest(param, onProgress = e => e, source) {
+      return new Promise((resolve, reject) => {
+        fileUpload.uploadShard(param, onProgress, source).then((res) => {
+          resolve(res)
+        }).catch(() => { reject() })
+      })
+    },
+    // 计算文件 hash (web worker)
+    calculateHash(fileChunkList) {
+      return new Promise(resolve => {
+        this.container.worker = new HashWorker()
+        this.container.worker.postMessage({ fileChunkList })
+        this.container.worker.onmessage = e => {
+          const { percentage, hash } = e.data
+          this.hashPercentage = percentage
+          if (hash) {
+            resolve(hash)
+          }
+        }
+      })
+    },
+    // 获取文件分片
+    createFileChunkList(file) {
+      const fileChunkList = []
+      let cur = 0
+      while (cur < file.size) {
+        fileChunkList.push({ file: file.slice(cur, cur + this.shardSize) })
+        cur += this.shardSize
+      }
+      return fileChunkList
+    },
+    // 文件输入框监听事件
+    handleFileChange(e) {
+      const [file] = e.target.files
+      if (!file) return
+      this.resetData()
+      // 还原 vue 组件的data为原始状态
+      Object.assign(this.$data, this.$options.data())
+      this.container.file = file
 
-      // 生成文件标识，标识多次上传的是不是同一个文件
-      const key = hex_md5(file.name + file.size + file.type)
-      const key10 = parseInt(key, 16)
-      const key62 = tenTo62(key10)
-      /*
-        d41d8cd98f00b204e9800998ecf8427e
-        2.8194976848941264e+38
-        6sfSqfOwzmik4A4icMYuUe
-       */
-
-      // 判断文件格式
-      const suffixes = _this.suffixes
+      // 设置文件信息 后缀 文件名 文件大小 文件hash 分片总数
+      const suffixes = this.suffixes
       const fileName = file.name
+      this.fileInfo.name = fileName
+      // 判断文件类型
       const suffix = fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length).toLowerCase()
       let validateSuffix = false
       for (let i = 0; i < suffixes.length; i++) {
@@ -89,124 +223,98 @@ export default {
         }
       }
       if (!validateSuffix) {
-        _this.$message({
+        this.$message({
           message: '文件格式不正确！只支持上传：' + suffixes.join(','),
           type: 'warning'
         })
-        _this.clearFileInput()
         return
       }
-
-      // 文件分片
-      // let shardSize = 10 * 1024 * 1024;    //以10MB为一个分片
-      // let shardSize = 50 * 1024;    //以50KB为一个分片
-      const shardSize = _this.shardSize
-      const shardIndex = 1		// 分片索引，1表示第1个分片
-      const size = file.size
-      const shardTotal = Math.ceil(size / shardSize) // 总片数
-
-      const param = {
-        'shardIndex': shardIndex,
-        'shardSize': shardSize,
-        'shardTotal': shardTotal,
-        'name': file.name,
-        'suffix': suffix,
-        'size': file.size,
-        'key': key62
-      }
-
-      _this.check(param)
+      this.fileInfo.suffix = suffix
+      this.fileInfo.size = file.size
+      this.fileInfo.shardTotal = Math.ceil(file.size / this.shardSize)
+      console.log('分片数：' + this.fileInfo.shardTotal)
+      this.handleUpload()
     },
-
-    /**
-     * 检查文件状态，是否已上传过？传到第几个分片？
-     */
-    check(param) {
-      const _this = this
-      fileUpload.check(param.key).then((resp) => {
-        if (resp.success) {
-          debugger
-          console.log('in')
-          const obj = resp.content
-          if (!obj || !obj.id) {
-            param.shardIndex = 1
-            console.log('没有找到文件记录，从分片1开始上传')
-            _this.upload(param)
-          } else if (obj.shardIndex === obj.shardTotal) {
-            // 已上传分片 = 分片总数，说明已全部上传完，不需要再上传
-            _this.$message({
-              message: '文件极速秒传成功！',
-              type: 'success'
-            })
-            _this.clearFileInput()
-            _this.afterUpload(resp)
-          } else {
-            param.shardIndex = obj.shardIndex + 1
-            console.log('找到文件记录，从分片' + param.shardIndex + '开始上传')
-            _this.upload(param)
-          }
-        } else {
-          _this.$message({
-            message: '文件上传失败',
-            type: 'warning'
-          })
-          _this.clearFileInput()
-        }
+    // 上传
+    async handleUpload() {
+      if (!this.container.file) return
+      this.status = Status.uploading
+      this.progressShow = true
+      const fileChunkList = this.createFileChunkList(this.container.file)
+      this.container.hash = await this.calculateHash(fileChunkList)
+      this.fileInfo.key = this.container.hash
+      // 判断是否已上传
+      // 若已全部上传成功 则显示文件秒传成功 否则获取服务端返回的已上传分片列表uploadedList
+      const { shouldUpload, uploadedList, file } = await this.verifyUpload(this.container.hash)
+      if (!shouldUpload) {
+        // 已上传分片 = 分片总数，说明已全部上传完，不需要再上传
+        this.$message({
+          message: '文件极速秒传成功！',
+          type: 'success'
+        })
+        this.clearFileInput()
+        this.afterUpload(file)
+        return
+      }
+      this.uploadParams = fileChunkList.map(({ file }, index) => ({
+        key: this.container.hash,
+        index,
+        size: file.size,
+        total: this.fileInfo.shardTotal,
+        blob: file,
+        percentage: 0
+      }))
+      await this.uploadChunks(uploadedList)
+    },
+    // 上传分片
+    async uploadChunks(uploadedList = []) {
+      const requestList = this.uploadParams
+        .filter(({ index }) => !uploadedList.includes(index))
+        .map(({ blob, key, size, total, index }) => {
+          const formData = new FormData()
+          formData.append('blob', blob)
+          formData.append('key', key)
+          formData.append('size', size)
+          formData.append('total', total)
+          formData.append('index', index)
+          const source = this.axios.CancelToken.source()
+          this.cancelTokens.push(source)
+          return { formData, index, source }
+        })
+        .map(async({ formData, index, source }) => {
+          this.uploadRequest(formData, this.createProgressHandler(this.uploadParams[index]), source).then(res => {
+            const curIndex = this.cancelTokens.findIndex((cancelToken) => cancelToken === source)
+            this.cancelTokens.splice(curIndex, 1)
+            if (res.content.is) { // 可合并
+              this.canMerge = true
+            }
+          }).catch(() => {})
+        })
+      await Promise.all(requestList)
+    },
+    // 检查文件状态，是否已上传过？传到第几个分片？
+    async verifyUpload(fileHash) {
+      return await fileUpload.verifyUpload(fileHash).then((res) => {
+        return res.content
       })
     },
-
-    /**
-     * 将分片数据转成base64进行上传
-     */
-    upload(param) {
-      const _this = this
-      const shardIndex = param.shardIndex
-      const shardTotal = param.shardTotal
-      const shardSize = param.shardSize
-      const fileShard = _this.getFileShard(shardIndex, shardSize)
-      // 将图片转为base64进行传输
-      const fileReader = new FileReader()
-
-      _this.progressShow = true
-      _this.percentage = parseInt((shardIndex - 1) * 100 / shardTotal)
-      fileReader.onload = function(e) {
-        const base64 = e.target.result
-
-        param.shard = base64
-
-        fileUpload.upload(param).then((resp) => {
-          if (resp.success) {
-            console.log('上传文件成功：', resp)
-            _this.percentage = parseInt(shardIndex * 100 / shardTotal)
-            if (shardIndex < shardTotal) {
-              // 上传下一个分片
-              param.shardIndex = param.shardIndex + 1
-              _this.upload(param)
-            } else {
-              _this.progressShow = false
-              _this.clearFileInput()
-              _this.afterUpload(resp)
-            }
-          } else {
-            _this.$message({
-              message: '文件上传失败',
-              type: 'warning'
-            })
-            _this.progressShow = false
-            _this.clearFileInput()
-          }
+    // 合并分片
+    async merge() {
+      this.status = Status.merge
+      await fileUpload.merge(this.fileInfo).then(res => {
+        this.$message({
+          message: '文件上传成功！',
+          type: 'success'
         })
-      }
-      fileReader.readAsDataURL(fileShard)
+        this.clearFileInput()
+        this.afterUpload(res.content)
+      })
     },
-
-    getFileShard(shardIndex, shardSize) {
-      const _this = this
-      const file = _this.$refs.file.files[0]
-      const start = (shardIndex - 1) * shardSize	// 当前分片起始位置
-      const end = Math.min(file.size, start + shardSize) // 当前分片结束位置
-      const fileShard = file.slice(start, end) // 从文件中截取当前的分片数据
-      return fileShard
+    // 用闭包保存每个分片的进度
+    createProgressHandler(item) {
+      return e => {
+        item.percentage = parseInt(String((e.loaded / e.total) * 100))
+      }
     },
 
     selectFile() {
@@ -214,6 +322,8 @@ export default {
     },
     // 清除文件输入框内容
     clearFileInput() {
+      this.status = Status.wait
+      this.progressShow = false
       document.getElementById(this.inputId + '-input').value = null
     }
   }

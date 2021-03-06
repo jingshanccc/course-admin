@@ -133,9 +133,9 @@ export default {
         this.init()
       }
     },
-    cropUploadSuccess(res) {
-      this.userInfo.avatar_path = res.content.path
-      this.userInfo.avatar_name = res.content.name
+    cropUploadSuccess(data) {
+      this.userInfo.avatar_path = data.path
+      this.userInfo.avatar_name = data.name
       editUser(this.userInfo).then(() => {
         // 需要更新 缓存中的userinfo
         store.dispatch('UserInfo').then(() => {})

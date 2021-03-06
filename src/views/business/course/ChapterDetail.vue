@@ -173,8 +173,9 @@ export default {
         })
       }
     },
-    cropUploadSuccess(res) {
-      this.crud.form.video = res.content.path
+    cropUploadSuccess(data) {
+      console.log(data)
+      this.crud.form.video = data.path
       this.getTime()
     },
     /**

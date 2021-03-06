@@ -215,10 +215,10 @@ export default {
         }
       })
     },
-    cropUploadSuccess(res) {
-      this.crud.form.image = res.content.path
+    cropUploadSuccess(data) {
+      this.crud.form.image = data.path
       this.previewList = []
-      this.previewList.push(res.content.path)
+      this.previewList.push(data.path)
     },
     contentOrChapter(name, course) {
       Cookies.remove('currentCourse')

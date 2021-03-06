@@ -15,6 +15,7 @@ module.exports = {
   assetsDir: 'static',
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
+  parallel: false,
   devServer: {
     // 解决 Invalid Host Header
     disableHostCheck: true,
@@ -54,6 +55,13 @@ module.exports = {
     config.module.rule('icons').test(/\.svg$/).include.add(resolve('src/assets/icons')).end().use('svg-sprite-loader').loader('svg-sprite-loader').options({
       symbolId: 'icon-[name]'
     }).end()
+    config.module.rule('worker').test(/\.worker\.js$/).use('worker').loader('worker-loader').options({
+      inline: 'fallback'
+    }).end()
+    // 解决 worker js 文件热更新失败
+    config.module.rule('js').exclude.add(/\.worker\.js$/)
+    // 解决 window is undefined 因为worker中没有window、dom对象
+    config.output.globalObject('this')
   }
 
 }
