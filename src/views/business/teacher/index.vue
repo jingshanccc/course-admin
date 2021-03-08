@@ -6,7 +6,7 @@
         <div class="head-container">
           <div v-if="crud.props.searchToggle">
             <!-- 搜索 -->
-            <el-input v-model="query.blurry" clearable size="small" placeholder="输入名称或者昵称搜索" style="width: 200px" class="filter-item" @keyup.enter.native="crud.toQuery" />
+            <el-input v-model="query.blurry" clearable size="small" placeholder="输入名称搜索" style="width: 200px" class="filter-item" @keyup.enter.native="crud.toQuery" />
             <search-reset />
           </div>
           <operation show="" :permission="permission" />
@@ -17,9 +17,6 @@
           <el-form ref="form" :inline="true" :model="form" :rules="rules" size="small" label-width="66px">
             <el-form-item label="姓名" prop="name">
               <el-input v-model="form.name" />
-            </el-form-item>
-            <el-form-item label="昵称" prop="nickname">
-              <el-input v-model="form.nickname" />
             </el-form-item>
             <el-form-item label="职位" prop="position">
               <el-input v-model="form.position" />
@@ -41,9 +38,6 @@
                 />
               </div>
             </el-form-item>
-            <el-form-item label="座右铭" prop="motto">
-              <el-input v-model="form.motto" />
-            </el-form-item>
             <br>
             <el-form-item label="简介" prop="intro">
               <el-input v-model="form.intro" style="width: 437px" type="textarea" autosize placeholder="请输入简介" />
@@ -55,17 +49,37 @@
           </div>
         </el-dialog>
         <!-- 表格 -->
-        <el-row>
-          <el-col v-for="(teacher, index) in crud.data" :key="teacher.id" :span="5" :offset="index > 0 ? 1 : 0" style="text-align: center">
-            <el-card :body-style="{ padding: '0px' }" shadow="always">
-              <el-image :src="teacher.image ? teacher.image : Avatar" fit="fill" alt="教师" style="height: 300px; border-radius: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, .12)" :title="teacher.intro" />
-              <div style="padding: 10px 14px;">
-                <el-link type="primary" style="font-size: 18px; " :title="teacher.motto">{{ teacher.name }}【{{ teacher.nickname }}】</el-link>
+        <el-table ref="table" v-loading="crud.loading" :data="crud.data" highlight-current-row style="width: 100%; text-align: center" @selection-change="crud.selectionChangeHandler">
+          <el-table-column type="selection" width="55" />
+          <el-table-column label="名称" prop="name" width="100" />
+          <el-table-column label="头像" width="80">
+            <template slot-scope="scope">
+              <el-avatar :src="scope.row.image" />
+            </template>
+          </el-table-column>
+          <el-table-column label="职位" prop="position" width="120" />
+          <el-table-column label="简介">
+            <template slot-scope="scope">
+              <div id="intro" :title="scope.row.intro">
+                {{ scope.row.intro }}
               </div>
-              <row-operation :data="teacher" :permission="permission" />
-            </el-card>
-          </el-col>
-        </el-row>
+            </template>
+          </el-table-column>
+          <el-table-column
+            v-permission="['admin','teacher:edit','teacher:del']"
+            label="操作"
+            width="115"
+            align="center"
+            fixed="right"
+          >
+            <template slot-scope="scope">
+              <row-operation
+                :data="scope.row"
+                :permission="permission"
+              />
+            </template>
+          </el-table-column>
+        </el-table>
         <!--分页组件-->
         <pagination />
       </el-col>
@@ -85,7 +99,7 @@ import Operation from '@/components/Crud/Operation'
 import RowOperation from '@/components/Crud/RowOperation'
 import Pagination from '@/components/Crud/Pagination'
 import SearchReset from '@/components/Crud/SearchReset'
-const defaultForm = { id: null, nickname: null, name: null, position: null, image: null, intro: null, motto: null }
+const defaultForm = { id: null, name: null, position: null, image: null, intro: null }
 
 export default {
   name: 'Teacher',
@@ -123,17 +137,9 @@ export default {
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
-        nickname: [
-          { required: true, message: '请输入用户昵称', trigger: 'blur' },
-          { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-        ],
         position: [
           { required: true, message: '请输入职位', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-        ],
-        motto: [
-          { required: true, message: '请输入座右铭', trigger: 'blur' },
-          { min: 2, max: 100, message: '长度在 2 到 100 个字符', trigger: 'blur' }
         ],
         image: [
           { required: true, message: '请上传头像', trigger: 'blur' }
@@ -143,16 +149,30 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'updateAvatarApi',
       'baseApi'
     ])
   },
   methods: {
+    [CRUD.HOOK.beforeToEdit](crud, form) {
+      const _this = this
+      _this.previewList = []
+      _this.previewList.push(form.image)
+    },
     cropUploadSuccess(data) {
       this.crud.form.image = data.path
+      this.previewList = []
       this.previewList.push(data.path)
     }
   }
 }
 </script>
+<style scoped>
+#intro {
+  overflow : hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;      /* 可以显示的行数，超出部分用...表示*/
+  -webkit-box-orient: vertical;
+}
+</style>
 

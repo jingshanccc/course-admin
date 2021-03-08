@@ -1,5 +1,12 @@
 import request from '@/utils/request'
 
+export function primary() {
+  return request({
+    url: '/admin/category/primary',
+    method: 'get'
+  })
+}
+
 export function all() {
   return request({
     url: '/admin/category/all',
@@ -33,4 +40,4 @@ export function del(ids) {
   })
 }
 
-export default { add, edit, del, all }
+export default { add, edit, del, all, primary }

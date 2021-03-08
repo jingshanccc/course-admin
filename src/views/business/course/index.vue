@@ -69,7 +69,11 @@
         <el-form-item label="讲师" prop="teacherId">
           <el-select
             v-model="form.teacherId"
-            placeholder="请选择讲师"
+            filterable
+            remote
+            placeholder="输入讲师名称以搜索"
+            :remote-method="searchTeacher"
+            :loading="searchTeacherLoading"
           >
             <el-option
               v-for="item in teachers"
@@ -78,6 +82,16 @@
               :value="item.id"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-cascader
+            v-model="form.categories"
+            :options="categories"
+            :show-all-levels="false"
+            collapse-tags
+            :props="{ multiple: true, checkStrictly: true, emitPath: false }"
+            clearable
+          />
         </el-form-item>
         <el-form-item label="概述" prop="summary">
           <el-input v-model="form.summary" style="width: 437px" type="textarea" autosize placeholder="请输入课程描述" />
@@ -91,25 +105,23 @@
 
     <el-row>
       <el-col v-for="course in crud.data" :key="course.id" :span="8">
-        <el-card :body-style="{ padding: '0px' }" shadow="always">
+        <el-card :body-style="{ padding: '0px', marginBottom: '8px' }" shadow="always">
           <el-image :src="course.image ? course.image : Cover" fit="contain" alt="课程封面" style="border-radius: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, .12)" />
-          <div style="padding: 10px 14px;">
-            <el-link type="primary" style="font-size: 18px; ">{{ course.name }}</el-link>
-            <div style="float: right">
-              <el-tag size="mini" effect="dark">{{ course.status }}</el-tag>
-              <el-tag type="success" size="mini" effect="dark">{{ course.level }}</el-tag>
-              <el-tag type="danger" size="mini" effect="dark">{{ course.charge }}</el-tag>
-            </div>
+          <p class="name">{{ course.name }}</p>
+          <div style="float: right">
+            <el-tag size="mini" effect="dark">{{ course.status }}</el-tag>
+            <el-tag type="success" size="mini" effect="dark">{{ course.level }}</el-tag>
+            <el-tag type="danger" size="mini" effect="dark">{{ course.charge }}</el-tag>
           </div>
           <div v-for="teacher in teachers.filter(t=>{return t.id===course.teacherId})" :key="teacher.id" style="padding-left: 10px">
-            <div style="padding-right: 10px; float: right">
-              <el-tag effect="light">{{ course.price }}￥</el-tag>
+            <div style="float: right">
+              <el-tag effect="light">￥{{ course.price }}</el-tag>
               <el-tag effect="light">{{ formatSecond(course.time) }}</el-tag>
             </div>
             <el-avatar :src="teacher.image ? teacher.image : Cover" />
-            <el-badge :value="teacher.position" type="warning">
+            <el-tooltip :content="teacher.position" effect="light" placement="right">
               <el-tag size="big" effect="plain" style="margin-left: 10px"> {{ teacher.name }} </el-tag>
-            </el-badge>
+            </el-tooltip>
           </div>
           <div id="summary" :title="course.summary">
             {{ course.summary }}
@@ -127,7 +139,8 @@
 <script>
 import Cookies from 'js-cookie'
 
-import { allTeacher } from '@/api/business/teacher'
+import { searchTeacher } from '@/api/business/teacher'
+import { all } from '@/api/business/category'
 import crudCourse from '@/api/business/course'
 
 import Upload from '@/components/Upload'
@@ -138,7 +151,7 @@ import Operation from '@/components/Crud/Operation'
 import CRUD, { form, header, presenter } from '@/components/Crud/crud'
 import RowOperation from '@/components/Crud/RowOperation'
 
-const defaultForm = { id: null, name: null, summary: null, price: 0.0, level: null, status: '草稿', image: null, charge: '免费', teacherId: null }
+const defaultForm = { id: null, name: null, summary: null, price: 0.0, level: null, status: '草稿', image: null, charge: '免费', teacherId: null, categories: null }
 export default {
   components: { RowOperation, SearchReset, Operation, Upload },
   mixins: [
@@ -166,7 +179,7 @@ export default {
       rules: {
         name: [
           { required: true, message: '请输入课程名称', trigger: 'blur' },
-          { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+          { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
         ],
         summary: [
           { required: true, message: '请输入课程描述', trigger: 'blur' }
@@ -194,12 +207,15 @@ export default {
         { id: 1, name: '初级' },
         { id: 2, name: '中级' },
         { id: 3, name: '高级' }
-      ]
+      ],
+      searchTeacherLoading: false,
+      categories: []
     }
   },
   mounted() {
     const _this = this
-    _this.allTeacher()
+    _this.searchTeacher('')
+    _this.getCategories()
   },
   methods: {
     formatSecond,
@@ -208,10 +224,38 @@ export default {
       _this.previewList = []
       _this.previewList.push(form.image)
     },
-    allTeacher() {
-      allTeacher().then(res => {
-        if (res.success) {
+    searchTeacher(name) {
+      this.searchTeacherLoading = true
+      searchTeacher(name).then(res => {
+        this.searchTeacherLoading = false
+        if (res.success && res.content.rows) {
           this.teachers = res.content.rows
+        } else {
+          this.teachers = []
+        }
+      })
+    },
+    getCategories() {
+      all().then(res => {
+        if (res.success && res.content.rows) {
+          const data = res.content.rows
+          const parent = []
+          const children = []
+          data.forEach(category => {
+            if (category.parent === '00000000') {
+              parent.push({ value: category.id, label: category.name, children: [] })
+            } else {
+              children.push(category)
+            }
+          })
+          parent.forEach(p => {
+            children.forEach(child => {
+              if (p.value === child.parent) {
+                p.children.push({ value: child.id, label: child.name })
+              }
+            })
+          })
+          this.categories = parent
         }
       })
     },
@@ -229,6 +273,18 @@ export default {
 }
 </script>
 <style scoped>
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: #545C63;
+  line-height: 20px;
+  height: 40px;
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
 #summary{
   margin: 5px 10px;
   height: 65px;

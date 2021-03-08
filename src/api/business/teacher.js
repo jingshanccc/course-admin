@@ -7,6 +7,14 @@ export function allTeacher() {
   })
 }
 
+export function searchTeacher(name) {
+  return request({
+    url: '/admin/teacher/search',
+    method: 'get',
+    params: { Str: name }
+  })
+}
+
 export function add(data) {
   return request({
     url: '/admin/teacher',
@@ -33,4 +41,4 @@ export function del(ids) {
   })
 }
 
-export default { add, edit, del, allTeacher }
+export default { add, edit, del, allTeacher, searchTeacher }

@@ -110,7 +110,7 @@ export default {
     }
   },
   created() {
-    crudCategory.all().then(res => {
+    crudCategory.primary().then(res => {
       if (res.success) {
         this.categories = res.content.rows
       }
