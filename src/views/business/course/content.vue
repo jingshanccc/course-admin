@@ -16,6 +16,7 @@ import { upload } from '@/api/file/file'
 import { findContent, saveContent } from '@/api/business/course'
 import { hex_md5 } from '@/utils/md5'
 import { tenTo62 } from '@/utils'
+import '@/utils/datetime'
 
 export default {
   data() {
