@@ -165,13 +165,12 @@ export default {
       form.chapterId = this.chapter.id
     },
     [CRUD.HOOK.beforeToCU]() {
-      if (this.chapters.length === 0) {
-        all(this.query.courseId).then(res => {
-          if (res.success) {
-            this.chapters = res.content.rows
-          }
-        })
-      }
+      // need reload chapters
+      all(this.query.courseId).then(res => {
+        if (res.success) {
+          this.chapters = res.content.rows
+        }
+      })
     },
     cropUploadSuccess(data) {
       console.log(data)
