@@ -112,7 +112,7 @@ export default {
         const user = {
           id: this.loginForm.id,
           login_name: this.loginForm.loginName,
-          name: this.loginForm.name,
+          code: this.loginForm.name,
           password: encrypt(this.loginForm.password)
         }
         if (valid) {

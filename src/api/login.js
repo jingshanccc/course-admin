@@ -15,7 +15,7 @@ export function authorize(loginUser) {
       // 'state': '' 自定义值 可防伪造攻击
       'state': process.env.VUE_APP_CLIENT_ID,
       'id': loginUser.id,
-      'name': loginUser.name,
+      'code': loginUser.code,
       'password': loginUser.password,
       'login_name': loginUser.login_name
     }
